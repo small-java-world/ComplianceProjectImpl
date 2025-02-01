@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    show-sql: true
+  flyway:
+    locations: classpath:db/migration
+
+logging:
+  level:
+    com.example.project: DEBUG
+    org.jooq.tools.LoggerListener: DEBUG 

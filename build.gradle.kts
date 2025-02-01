@@ -57,6 +57,24 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.9")
 }
 
+// .envファイルから環境変数を読み込む
+fun loadEnvVariables(): Map<String, String> {
+    val envFile = file(".env")
+    return if (envFile.exists()) {
+        envFile.readLines()
+            .filter { it.isNotBlank() && !it.startsWith("#") }
+            .map { line ->
+                val (key, value) = line.split("=", limit = 2)
+                key.trim() to value.trim()
+            }
+            .toMap()
+    } else {
+        emptyMap()
+    }
+}
+
+val envVariables = loadEnvVariables()
+
 jooq {
     version.set("3.19.1")
     configurations {
@@ -65,15 +83,15 @@ jooq {
                 logging = org.jooq.meta.jaxb.Logging.WARN
                 jdbc.apply {
                     driver = "com.mysql.cj.jdbc.Driver"
-                    url = "jdbc:mysql://localhost:3306/compliance_management_system"
-                    user = "compliance_user"
-                    password = "compliance_pass"
+                    url = envVariables["DB_URL"] ?: "jdbc:mysql://localhost:3306/compliance_management_system"
+                    user = envVariables["DB_USER"] ?: "compliance_user"
+                    password = envVariables["DB_PASSWORD"] ?: "compliance_pass"
                 }
                 generator.apply {
                     name = "org.jooq.codegen.KotlinGenerator"
                     database.apply {
                         name = "org.jooq.meta.mysql.MySQLDatabase"
-                        inputSchema = "compliance_management_system"
+                        inputSchema = envVariables["DB_NAME"] ?: "compliance_management_system"
                         includes = ".*"
                         excludes = """
                             flyway_schema_history | 
@@ -103,6 +121,23 @@ jooq {
             }
         }
     }
+}
+
+// Flywayマイグレーションタスク
+tasks.register("flywayMigrate", org.flywaydb.gradle.task.FlywayMigrateTask::class) {
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = envVariables["DB_URL"] ?: "jdbc:mysql://localhost:3306/compliance_management_system"
+    user = envVariables["DB_USER"] ?: "compliance_user"
+    password = envVariables["DB_PASSWORD"] ?: "compliance_pass"
+    baselineOnMigrate = true
+    locations = arrayOf("filesystem:src/main/resources/db/migration")
+}
+
+// データベース初期化タスク
+tasks.register("initDatabase") {
+    group = "Database"
+    description = "Initialize database with migrations and generate jOOQ classes"
+    dependsOn("flywayMigrate", "generateJooq")
 }
 
 tasks.named<nu.studer.gradle.jooq.JooqGenerate>("generateJooq") {
