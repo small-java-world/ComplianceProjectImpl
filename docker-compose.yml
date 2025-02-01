@@ -2,18 +2,18 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0.40
     container_name: compliance-mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: compliance_db
+      MYSQL_DATABASE: compliance_management_system
       MYSQL_USER: compliance_user
       MYSQL_PASSWORD: compliance_pass
     ports:
       - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql_data:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -21,23 +21,18 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio
     container_name: compliance-minio
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
     ports:
-      - "9000:9000"  # APIエンドポイント
-      - "9001:9001"  # Web管理コンソール
+      - "9000:9000"
+      - "9001:9001"
     volumes:
-      - minio_data:/data
+      - minio-data:/data
     command: server /data --console-address ":9001"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
   mysql_data:
-  minio_data: 
+  minio-data: 

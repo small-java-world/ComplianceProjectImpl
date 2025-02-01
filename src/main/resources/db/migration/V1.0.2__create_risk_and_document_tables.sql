@@ -1,7 +1,7 @@
 -- --------------------------------------------------------------------------
 -- リスク: Risk
 -- --------------------------------------------------------------------------
-CREATE TABLE     (
+CREATE TABLE Risk (
     risk_id         VARCHAR(36)  NOT NULL,
     project_id      VARCHAR(36)  NOT NULL,
     description     TEXT         NOT NULL,
@@ -78,11 +78,12 @@ CREATE TABLE Document (
     project_id      VARCHAR(36)  NOT NULL,
     title           VARCHAR(200) NOT NULL,
     category_code   VARCHAR(50)  NOT NULL,
-    department_id   VARCHAR(50)  NOT NULL,
+    department_id   VARCHAR(36)  NOT NULL,
     created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_Document PRIMARY KEY (document_id),
-    CONSTRAINT FK_Document_Project FOREIGN KEY (project_id) REFERENCES ComplianceProject(project_id)
+    CONSTRAINT FK_Document_Project FOREIGN KEY (project_id) REFERENCES ComplianceProject(project_id),
+    CONSTRAINT FK_Document_Department FOREIGN KEY (department_id) REFERENCES Department(department_id)
 );
 
 -- --------------------------------------------------------------------------
@@ -122,11 +123,12 @@ CREATE TABLE ApprovalWorkflow (
 CREATE TABLE DocCategoryDeptMapping (
     mapping_id          VARCHAR(36)  NOT NULL,
     doc_category_code   VARCHAR(50)  NOT NULL,
-    department_id       VARCHAR(50)  NOT NULL,
+    department_id       VARCHAR(36)  NOT NULL,
     approver_role_code  VARCHAR(50)  NOT NULL,
     approval_order      INT          NOT NULL,
     created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_DocCategoryDeptMapping PRIMARY KEY (mapping_id),
-    CONSTRAINT UQ_DocCategoryDeptMapping UNIQUE (doc_category_code, department_id, approval_order)
+    CONSTRAINT UQ_DocCategoryDeptMapping UNIQUE (doc_category_code, department_id, approval_order),
+    CONSTRAINT FK_DocCategoryDeptMapping_Department FOREIGN KEY (department_id) REFERENCES Department(department_id)
 ); 
