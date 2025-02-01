@@ -119,6 +119,7 @@
 - Kotlin: 2.1.x
 - Spring Boot: 3.4.x
 - Spring Framework: 6.2.x
+- ORM: Jooq 3.19.x
 
 ## テスト・品質管理
 - Kotest: 5.9.x
@@ -127,7 +128,6 @@
 
 ## データベース
 - MySQL: 8.0
-- Jooq: 3.19.x
 - Flyway: 11.3.x
 
 ## 開発ツール

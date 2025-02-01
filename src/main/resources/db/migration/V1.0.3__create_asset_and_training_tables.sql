@@ -74,6 +74,22 @@ CREATE TABLE AssetOwner (
 );
 
 -- --------------------------------------------------------------------------
+-- 資産×リスク: AssetRisk
+-- --------------------------------------------------------------------------
+CREATE TABLE AssetRisk (
+    asset_risk_id  VARCHAR(36) NOT NULL,
+    asset_id       VARCHAR(36) NOT NULL,
+    risk_id        VARCHAR(36) NOT NULL,
+
+    created_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT PK_AssetRisk PRIMARY KEY (asset_risk_id),
+    CONSTRAINT FK_AssetRisk_Asset FOREIGN KEY (asset_id) REFERENCES Asset(asset_id),
+    CONSTRAINT FK_AssetRisk_Risk FOREIGN KEY (risk_id) REFERENCES Risk(risk_id)
+);
+
+-- --------------------------------------------------------------------------
 -- 教育プログラム: TrainingProgram
 -- --------------------------------------------------------------------------
 CREATE TABLE TrainingProgram (

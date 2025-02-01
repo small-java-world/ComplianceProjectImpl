@@ -1,7 +1,7 @@
 -- --------------------------------------------------------------------------
 -- リスク: Risk
 -- --------------------------------------------------------------------------
-CREATE TABLE Risk (
+CREATE TABLE     (
     risk_id         VARCHAR(36)  NOT NULL,
     project_id      VARCHAR(36)  NOT NULL,
     description     TEXT         NOT NULL,
@@ -29,22 +29,47 @@ CREATE TABLE RiskAssessment (
 );
 
 -- --------------------------------------------------------------------------
+-- 【概念レベルリンク】リスク-要求事項対応: RiskRequirement
+--   「このリスクには標準的にこのRequirementが有効」という概念的マッピングを保持
+--   大規模環境やISO 27001のコントロール適用根拠を整理する際に有効
+-- --------------------------------------------------------------------------
+CREATE TABLE RiskRequirement (
+    risk_requirement_id VARCHAR(36) NOT NULL,
+    risk_id            VARCHAR(36)  NOT NULL,
+    requirement_id     VARCHAR(36)  NOT NULL,
+
+    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT PK_RiskRequirement PRIMARY KEY (risk_requirement_id),
+    CONSTRAINT FK_RiskRequirement_Risk FOREIGN KEY (risk_id) REFERENCES Risk(risk_id),
+    CONSTRAINT FK_RiskRequirement_Requirement FOREIGN KEY (requirement_id) REFERENCES Requirement(requirement_id)
+);
+
+-- --------------------------------------------------------------------------
 -- リスク対応計画: RiskTreatmentPlan
+--   ・リスクに対する具体的対策（回避/移転/低減/受容 etc.）
+--   ・ここで「どのRequirementを実際に採用するか」(requirement_id)を登録可能
+--   ・owner_id: ユーザ(責任者)
+--   ・status_code → M_CODE("RISK_TREATMENT_STATUS")
 -- --------------------------------------------------------------------------
 CREATE TABLE RiskTreatmentPlan (
     plan_id         VARCHAR(36)  NOT NULL,
     risk_id         VARCHAR(36)  NOT NULL,
+    requirement_id  VARCHAR(36)  NULL,  -- 実際に適用するコントロール(Requirement)
     action          TEXT         NOT NULL,
     owner_id        VARCHAR(36)  NOT NULL,
     due_date        DATE         NOT NULL,
-    status_code     VARCHAR(50)  NOT NULL,
+    status_code     VARCHAR(50)  NOT NULL, -- M_CODE: "RISK_TREATMENT_STATUS"
+
     created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     CONSTRAINT PK_RiskTreatmentPlan PRIMARY KEY (plan_id),
     CONSTRAINT FK_RiskTreatmentPlan_Risk FOREIGN KEY (risk_id) REFERENCES Risk(risk_id),
+    CONSTRAINT FK_RiskTreatmentPlan_Requirement FOREIGN KEY (requirement_id) REFERENCES Requirement(requirement_id),
     CONSTRAINT FK_RiskTreatmentPlan_User FOREIGN KEY (owner_id) REFERENCES User(user_id)
 );
-
 -- --------------------------------------------------------------------------
 -- 文書: Document
 -- --------------------------------------------------------------------------
