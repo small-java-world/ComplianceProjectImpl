@@ -135,4 +135,83 @@ src/
 ## 注意事項
 - 本番環境では`flywayClean`を使用しないでください。
 - 環境変数は`.env`ファイルで管理し、バージョン管理システムにコミットしないでください。
-- マイグレーションファイルは一度コミットした後、変更しないでください。 
+- マイグレーションファイルは一度コミットした後、変更しないでください。
+
+## データベース操作
+
+### Gradleタスク一覧
+
+#### データベース初期化
+```bash
+# データベースの初期化（マイグレーションとjOOQ生成）
+./gradlew initDatabase
+```
+
+#### マイグレーション
+```bash
+# マイグレーションの実行
+./gradlew flywayMigrate
+
+# マイグレーション状態の確認
+./gradlew flywayInfo
+
+# マイグレーションのクリーン（全テーブル削除）
+./gradlew flywayClean
+```
+
+#### データ操作
+```bash
+# 全テーブルのデータをクリアし、マイグレーションを再実行
+./gradlew clearAllData
+
+# サンプルデータの投入
+./gradlew loadTransactionData
+```
+
+#### 接続テスト
+```bash
+# データベース接続テスト
+./gradlew testDatabaseConnection
+```
+
+### タスクの説明
+
+1. `initDatabase`
+   - データベースの初期化を行います
+   - マイグレーションの実行とjOOQクラスの生成を行います
+
+2. `clearAllData`
+   - 全テーブルのデータをクリアします
+   - 外部キー制約を考慮した安全なクリア処理を行います
+   - マイグレーションを自動的に再実行します
+
+3. `loadTransactionData`
+   - サンプルデータをデータベースに投入します
+   - `src/main/resources/db/transactiondata`配下のSQLを実行します
+
+4. `testDatabaseConnection`
+   - データベースへの接続テストを行います
+   - JDBCドライバーの登録状態も確認できます
+
+### 使用例
+
+#### 開発環境のリセット
+```bash
+# 1. 全データのクリア＆マイグレーション
+./gradlew clearAllData
+
+# 2. サンプルデータの投入
+./gradlew loadTransactionData
+```
+
+#### 接続確認
+```bash
+# データベース接続の確認
+./gradlew testDatabaseConnection
+```
+
+### 注意事項
+
+1. `clearAllData`は全てのデータを削除します。実行前に必要なデータのバックアップを確認してください。
+2. 本番環境では`cleanDisabled = true`に設定し、誤ってデータを削除しないよう注意してください。
+3. サンプルデータの投入は開発環境でのみ使用してください。 

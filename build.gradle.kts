@@ -253,12 +253,30 @@ tasks.register("loadTransactionData") {
     group = "Database"
     description = "Load transaction data into the database"
     
+    dependsOn("flywayMigrate")
+    
     doLast {
-        val flyway = org.flywaydb.core.Flyway.configure()
+        // マスターデータの投入
+        val masterFlyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/compliance_management_system",
-                "root",
-                "root"
+                "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
+                "compliance_user",
+                "compliance_pass"
+            )
+            .locations("filesystem:src/main/resources/db/migration")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        masterFlyway.migrate()
+
+        // トランザクションデータの投入
+        val transactionFlyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
+                "compliance_user",
+                "compliance_pass"
             )
             .locations("filesystem:src/main/resources/db/transactiondata")
             .baselineOnMigrate(true)
@@ -266,7 +284,7 @@ tasks.register("loadTransactionData") {
             .validateOnMigrate(false)
             .load()
 
-        flyway.migrate()
+        transactionFlyway.migrate()
     }
 }
 
