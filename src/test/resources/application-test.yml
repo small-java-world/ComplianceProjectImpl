@@ -19,7 +19,7 @@ spring:
 
   flyway:
     enabled: true
-    locations: classpath:db/migration,classpath:db/testdata
+    locations: classpath:db/migration
     clean-disabled: false
     clean-on-validation-error: true
     user: root
