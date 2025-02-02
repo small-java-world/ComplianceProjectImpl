@@ -82,7 +82,6 @@ fun loadEnvVariables(): Map<String, String> {
 }
 
 val envVariables = loadEnvVariables()
-
 jooq {
     version.set("3.19.1")
     configurations {
@@ -90,7 +89,7 @@ jooq {
             jooqConfiguration.apply {
                 jdbc.apply {
                     driver = "com.mysql.cj.jdbc.Driver"
-                    url = "jdbc:mysql://172.27.0.2:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+                    url = "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
                     user = "compliance_user"
                     password = "compliance_pass"
                 }
@@ -139,6 +138,7 @@ tasks.register("initDatabase") {
 }
 
 tasks.named<nu.studer.gradle.jooq.JooqGenerate>("generateJooq") {
+    dependsOn("flywayMigrate")
     inputs.files(fileTree("src/main/resources/db/migration"))
         .withPropertyName("migrations")
         .withPathSensitivity(PathSensitivity.RELATIVE)
@@ -146,15 +146,24 @@ tasks.named<nu.studer.gradle.jooq.JooqGenerate>("generateJooq") {
     outputs.cacheIf { true }
 }
 
+tasks.withType<JavaExec> {
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += "-Xjsr305=strict"
         jvmTarget = "21"
     }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 tasks.register("testDatabaseConnection") {
@@ -219,9 +228,9 @@ tasks.register("testDatabaseConnection") {
 }
 
 flyway {
-    url = "jdbc:mysql://localhost:3306/compliance_management_system"
-    user = "root"
-    password = "root"
+    url = "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "compliance_user"
+    password = "compliance_pass"
     driver = "com.mysql.cj.jdbc.Driver"
     defaultSchema = "compliance_management_system"
     locations = arrayOf("filesystem:src/main/resources/db/migration")
