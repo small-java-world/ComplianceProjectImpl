@@ -1,6 +1,6 @@
--- --------------------------------------------------------------------------
+-- ------------------------------------------------------------
 -- M_CODEテーブルへの初期データ投入
--- --------------------------------------------------------------------------
+-- ------------------------------------------------------------
 
 INSERT INTO M_CODE (
   code_category, code, code_division, code_name, code_short_name,
@@ -22,114 +22,87 @@ VALUES
 ('USER_ROLE','10','READ_ONLY','閲覧専用ユーザー','ReadOnly','0','1','0',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 ('USER_ROLE','99','OTHER','その他','Other','0','1','0',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 
-----------------------------------------------------------------
 -- ISMS関連のロール
-----------------------------------------------------------------
-('USER_ROLE','14','ISMS_TOP_MANAGEMENT','トップマネジメント(ISMS)','ISMS Top','0','4','0','ISMS',NULL),
-('USER_ROLE','15','ISMS_MANAGER','ISMS責任者','ISMS Manager','0','3','0','ISMS',NULL),
-('USER_ROLE','16','ISMS_STAFF','ISMS担当者','ISMS Staff','0','2','0','ISMS',NULL),
-('USER_ROLE','17','ISMS_INT_AUDIT_LEADER','ISMS内部監査責任者','ISMS IntAudit','0','3','1','ISMS',NULL),
-('USER_ROLE','18','ISMS_EXT_AUDIT_COORDINATOR','ISMS外部監査対応責任者','ISMS ExtAudit','0','3','2','ISMS',NULL),
+('USER_ROLE','14','ISMS_TOP_MANAGEMENT','トップマネジメント(ISMS)','ISMS Top','0','4','0','ISMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','15','ISMS_MANAGER','ISMS責任者','ISMS Manager','0','3','0','ISMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','16','ISMS_STAFF','ISMS担当者','ISMS Staff','0','2','0','ISMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','17','ISMS_INT_AUDIT_LEADER','ISMS内部監査責任者','ISMS IntAudit','0','3','1','ISMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','18','ISMS_EXT_AUDIT_COORDINATOR','ISMS外部監査対応責任者','ISMS ExtAudit','0','3','2','ISMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
-----------------------------------------------------------------
--- (A) Pマーク (PMARK)
-----------------------------------------------------------------
-('USER_ROLE','19','PMARK_TOP_MANAGEMENT','トップマネジメント(Pマーク)','PMark Top','0','4','0','PMARK',NULL),
-('USER_ROLE','20','PMARK_MANAGER','Pマーク責任者','PMark Manager','0','3','0','PMARK',NULL),
-('USER_ROLE','21','PMARK_STAFF','Pマーク担当者','PMark Staff','0','2','0','PMARK',NULL),
-('USER_ROLE','22','PMARK_INT_AUDIT_LEADER','Pマーク内部監査責任者','PMark IntAudit','0','3','1','PMARK',NULL),
-('USER_ROLE','23','PMARK_EXT_AUDIT_COORDINATOR','Pマーク外部監査対応責任者','PMark ExtAudit','0','3','2','PMARK',NULL),
+-- Pマーク (PMARK)
+('USER_ROLE','19','PMARK_TOP_MANAGEMENT','トップマネジメント(Pマーク)','PMark Top','0','4','0','PMARK',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','20','PMARK_MANAGER','Pマーク責任者','PMark Manager','0','3','0','PMARK',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','21','PMARK_STAFF','Pマーク担当者','PMark Staff','0','2','0','PMARK',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','22','PMARK_INT_AUDIT_LEADER','Pマーク内部監査責任者','PMark IntAudit','0','3','1','PMARK',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','23','PMARK_EXT_AUDIT_COORDINATOR','Pマーク外部監査対応責任者','PMark ExtAudit','0','3','2','PMARK',NULL,NULL,NULL,NULL,NULL,NULL),
 
-----------------------------------------------------------------
--- (B) QMS (ISO9001)
-----------------------------------------------------------------
-('USER_ROLE','24','QMS_TOP_MANAGEMENT','トップマネジメント(QMS)','QMS Top','0','4','0','QMS',NULL),
-('USER_ROLE','25','QMS_MANAGER','QMS責任者','QMS Manager','0','3','0','QMS',NULL),
-('USER_ROLE','26','QMS_STAFF','QMS担当者','QMS Staff','0','2','0','QMS',NULL),
-('USER_ROLE','27','QMS_INT_AUDIT_LEADER','QMS内部監査責任者','QMS IntAudit','0','3','1','QMS',NULL),
-('USER_ROLE','28','QMS_EXT_AUDIT_COORDINATOR','QMS外部監査対応責任者','QMS ExtAudit','0','3','2','QMS',NULL),
+-- QMS (ISO9001)
+('USER_ROLE','24','QMS_TOP_MANAGEMENT','トップマネジメント(QMS)','QMS Top','0','4','0','QMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','25','QMS_MANAGER','QMS責任者','QMS Manager','0','3','0','QMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','26','QMS_STAFF','QMS担当者','QMS Staff','0','2','0','QMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','27','QMS_INT_AUDIT_LEADER','QMS内部監査責任者','QMS IntAudit','0','3','1','QMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','28','QMS_EXT_AUDIT_COORDINATOR','QMS外部監査対応責任者','QMS ExtAudit','0','3','2','QMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
-----------------------------------------------------------------
--- (A) SOC2 ロール (5種)
-----------------------------------------------------------------
-('USER_ROLE','29','SOC2_TOP_MANAGEMENT','トップマネジメント(SOC2)','SOC2 Top','0','4','0','SOC2',NULL),
-('USER_ROLE','30','SOC2_MANAGER','SOC2責任者','SOC2 Manager','0','3','0','SOC2',NULL),
-('USER_ROLE','31','SOC2_STAFF','SOC2担当者','SOC2 Staff','0','2','0','SOC2',NULL),
-('USER_ROLE','32','SOC2_INT_AUDIT_LEADER','SOC2内部監査責任者','SOC2 IntAudit','0','3','1','SOC2',NULL),
-('USER_ROLE','33','SOC2_EXT_AUDIT_COORDINATOR','SOC2外部監査対応責任者','SOC2 ExtAudit','0','3','2','SOC2',NULL),
--- (1) SOC2報告書取りまとめ役
-('USER_ROLE','44','SOC2_REPORT_OWNER','SOC2 Reportオーナー','SOC2 ReportOwner','0','3','0','SOC2',NULL),
+-- SOC2 ロール
+('USER_ROLE','29','SOC2_TOP_MANAGEMENT','トップマネジメント(SOC2)','SOC2 Top','0','4','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','30','SOC2_MANAGER','SOC2責任者','SOC2 Manager','0','3','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','31','SOC2_STAFF','SOC2担当者','SOC2 Staff','0','2','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','32','SOC2_INT_AUDIT_LEADER','SOC2内部監査責任者','SOC2 IntAudit','0','3','1','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','33','SOC2_EXT_AUDIT_COORDINATOR','SOC2外部監査対応責任者','SOC2 ExtAudit','0','3','2','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
 
--- (2) TSC: Security
-('USER_ROLE','45','SOC2_TSC_SECURITY_OWNER','SOC2 TSC(セキュリティ)オーナー','SOC2 Security','0','3','0','SOC2',NULL),
+-- SOC2報告書取りまとめ役
+('USER_ROLE','44','SOC2_REPORT_OWNER','SOC2 Reportオーナー','SOC2 ReportOwner','0','3','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
 
--- (3) TSC: Availability
-('USER_ROLE','46','SOC2_TSC_AVAILABILITY_OWNER','SOC2 TSC(可用性)オーナー','SOC2 Availability','0','3','0','SOC2',NULL),
+-- TSC: Security
+('USER_ROLE','45','SOC2_TSC_SECURITY_OWNER','SOC2 TSC(セキュリティ)オーナー','SOC2 Security','0','3','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
 
--- (4) TSC: Confidentiality
-('USER_ROLE','47','SOC2_TSC_CONFIDENTIALITY_OWNER','SOC2 TSC(機密性)オーナー','SOC2 Confidentiality','0','3','0','SOC2',NULL),
+-- TSC: Availability
+('USER_ROLE','46','SOC2_TSC_AVAILABILITY_OWNER','SOC2 TSC(可用性)オーナー','SOC2 Availability','0','3','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
 
--- (5) TSC: Processing Integrity
-('USER_ROLE','48','SOC2_TSC_PROCESSING_INTEGRITY_OWNER','SOC2 TSC(処理完全性)オーナー','SOC2 ProcIntegrity','0','3','0','SOC2',NULL),
+-- TSC: Confidentiality
+('USER_ROLE','47','SOC2_TSC_CONFIDENTIALITY_OWNER','SOC2 TSC(機密性)オーナー','SOC2 Confidentiality','0','3','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
 
--- (6) TSC: Privacy
-('USER_ROLE','49','SOC2_TSC_PRIVACY_OWNER','SOC2 TSC(プライバシー)オーナー','SOC2 Privacy','0','3','0','SOC2',NULL),
+-- TSC: Processing Integrity
+('USER_ROLE','48','SOC2_TSC_PROCESSING_INTEGRITY_OWNER','SOC2 TSC(処理完全性)オーナー','SOC2 ProcIntegrity','0','3','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
 
-----------------------------------------------------------------
--- (B) AIMS ロール (5種)
---   AIMS が特定のマネジメントシステムを指す前提で同様に作成
-----------------------------------------------------------------
-('USER_ROLE','34','AIMS_TOP_MANAGEMENT','トップマネジメント(AIMS)','AIMS Top','0','4','0','AIMS',NULL),
-('USER_ROLE','35','AIMS_MANAGER','AIMS責任者','AIMS Manager','0','3','0','AIMS',NULL),
-('USER_ROLE','36','AIMS_STAFF','AIMS担当者','AIMS Staff','0','2','0','AIMS',NULL),
-('USER_ROLE','37','AIMS_INT_AUDIT_LEADER','AIMS内部監査責任者','AIMS IntAudit','0','3','1','AIMS',NULL),
-('USER_ROLE','38','AIMS_EXT_AUDIT_COORDINATOR','AIMS外部監査対応責任者','AIMS ExtAudit','0','3','2','AIMS',NULL),
+-- TSC: Privacy
+('USER_ROLE','49','SOC2_TSC_PRIVACY_OWNER','SOC2 TSC(プライバシー)オーナー','SOC2 Privacy','0','3','0','SOC2',NULL,NULL,NULL,NULL,NULL,NULL),
 
-----------------------------------------------------------------
--- (C) EMS ロール (5種)
---   EMS(ISO14001) 環境マネジメントシステムなどを想定
-----------------------------------------------------------------
-('USER_ROLE','39','EMS_TOP_MANAGEMENT','トップマネジメント(EMS)','EMS Top','0','4','0','EMS',NULL),
-('USER_ROLE','40','EMS_MANAGER','EMS責任者','EMS Manager','0','3','0','EMS',NULL),
-('USER_ROLE','41','EMS_STAFF','EMS担当者','EMS Staff','0','2','0','EMS',NULL),
-('USER_ROLE','42','EMS_INT_AUDIT_LEADER','EMS内部監査責任者','EMS IntAudit','0','3','1','EMS',NULL),
-('USER_ROLE','43','EMS_EXT_AUDIT_COORDINATOR','EMS外部監査対応責任者','EMS ExtAudit','0','3','2','EMS',NULL),
+-- AIMS ロール
+('USER_ROLE','34','AIMS_TOP_MANAGEMENT','トップマネジメント(AIMS)','AIMS Top','0','4','0','AIMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','35','AIMS_MANAGER','AIMS責任者','AIMS Manager','0','3','0','AIMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','36','AIMS_STAFF','AIMS担当者','AIMS Staff','0','2','0','AIMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','37','AIMS_INT_AUDIT_LEADER','AIMS内部監査責任者','AIMS IntAudit','0','3','1','AIMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','38','AIMS_EXT_AUDIT_COORDINATOR','AIMS外部監査対応責任者','AIMS ExtAudit','0','3','2','AIMS',NULL,NULL,NULL,NULL,NULL,NULL),
+
+-- EMS ロール
+('USER_ROLE','39','EMS_TOP_MANAGEMENT','トップマネジメント(EMS)','EMS Top','0','4','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','40','EMS_MANAGER','EMS責任者','EMS Manager','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','41','EMS_STAFF','EMS担当者','EMS Staff','0','2','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','42','EMS_INT_AUDIT_LEADER','EMS内部監査責任者','EMS IntAudit','0','3','1','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
+('USER_ROLE','43','EMS_EXT_AUDIT_COORDINATOR','EMS外部監査対応責任者','EMS ExtAudit','0','3','2','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
 -- 環境側面管理責任者
-('USER_ROLE','50','EMS_ENV_ASPECTS_MANAGER',
- 'EMS環境側面管理責任者','EMS AspectsMgr',
- '0','3','0','EMS',NULL),
+('USER_ROLE','50','EMS_ENV_ASPECTS_MANAGER','EMS環境側面管理責任者','EMS AspectsMgr','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
 -- 法的要求事項管理者
-('USER_ROLE','51','EMS_LEGAL_COMPLIANCE_MANAGER',
- 'EMS法的要求事項管理者','EMS LegalMgr',
- '0','3','0','EMS',NULL),
+('USER_ROLE','51','EMS_LEGAL_COMPLIANCE_MANAGER','EMS法的要求事項管理者','EMS LegalMgr','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
 -- 運用管理リーダー
-('USER_ROLE','52','EMS_OPERATIONAL_CONTROL_LEADER',
- 'EMS運用管理リーダー','EMS OpCtrl',
- '0','3','0','EMS',NULL),
+('USER_ROLE','52','EMS_OPERATIONAL_CONTROL_LEADER','EMS運用管理リーダー','EMS OpCtrl','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
 -- 緊急対応責任者
-('USER_ROLE','53','EMS_EMERGENCY_COORDINATOR',
- 'EMS緊急対応責任者','EMS Emergency',
- '0','3','0','EMS',NULL),
+('USER_ROLE','53','EMS_EMERGENCY_COORDINATOR','EMS緊急対応責任者','EMS Emergency','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
 -- 監視・測定・分析リーダー
-('USER_ROLE','54','EMS_MONITORING_MEASUREMENT_LEAD',
- 'EMS監視測定リーダー','EMS MonitorLead',
- '0','3','0','EMS',NULL),
+('USER_ROLE','54','EMS_MONITORING_MEASUREMENT_LEAD','EMS監視測定リーダー','EMS MonitorLead','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
 -- 環境文書管理者
-('USER_ROLE','55','EMS_DOCUMENT_RECORDS_MANAGER',
- 'EMS文書管理者','EMS DocsMgr',
- '0','3','0','EMS',NULL),
+('USER_ROLE','55','EMS_DOCUMENT_RECORDS_MANAGER','EMS文書管理者','EMS DocsMgr','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
 
 -- 環境コミュニケーション担当
-('USER_ROLE','56','EMS_COMMUNICATION_OFFICER',
- 'EMSコミュニケーション担当','EMS Comm',
- '0','3','0','EMS',NULL),
- 
+('USER_ROLE','56','EMS_COMMUNICATION_OFFICER','EMSコミュニケーション担当','EMS Comm','0','3','0','EMS',NULL,NULL,NULL,NULL,NULL,NULL),
+
 -- PROJECT_STATUS
 ('PROJECT_STATUS','PREPARING','DEFAULT','準備中','Preparing','0','1','0','0','0',NULL,NULL,NULL,NULL,NULL),
 ('PROJECT_STATUS','IN_PROGRESS','DEFAULT','実行中','InProgress','1','1','0','0','0',NULL,NULL,NULL,NULL,NULL),
@@ -257,4 +230,4 @@ VALUES
 -- INCIDENT_TYPE
 ('INCIDENT_TYPE','SECURITY_INCIDENT','DEFAULT','セキュリティインシデント','SecIncident','1','0','0','3',NULL,NULL,NULL,NULL,NULL,NULL),
 ('INCIDENT_TYPE','SYSTEM_OUTAGE','DEFAULT','システム障害','SystemOutage','0','1','0','3',NULL,NULL,NULL,NULL,NULL,NULL),
-('INCIDENT_TYPE','DATA_BREACH','DEFAULT','データ漏洩','DataBreach','1','0','1','4',NULL,NULL,NULL,NULL,NULL,NULL); 
+('INCIDENT_TYPE','DATA_BREACH','DEFAULT','データ漏洩','DataBreach','1','0','1','4',NULL,NULL,NULL,NULL,NULL,NULL);
