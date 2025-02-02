@@ -244,4 +244,25 @@ buildscript {
         classpath("org.flywaydb:flyway-mysql:9.22.3")
         classpath("com.mysql:mysql-connector-j:8.0.33")
     }
+}
+
+tasks.register("loadTransactionData") {
+    group = "Database"
+    description = "Load transaction data into the database"
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/compliance_management_system",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
 } 
