@@ -63,6 +63,8 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.9.0")
     testImplementation("io.kotest:kotest-property:5.9.0")
     testImplementation("io.mockk:mockk:1.13.9")
+
+    implementation("mysql:mysql-connector-java:8.0.33")
 }
 
 // .envファイルから環境変数を読み込む
@@ -237,6 +239,7 @@ flyway {
     validateOnMigrate = true
     outOfOrder = false
     baselineOnMigrate = true
+    cleanDisabled = false
 }
 
 buildscript {
@@ -264,5 +267,39 @@ tasks.register("loadTransactionData") {
             .load()
 
         flyway.migrate()
+    }
+}
+
+tasks.register("clearAllData") {
+    group = "Database"
+    description = "全てのテーブルのデータをクリアします"
+    
+    doFirst {
+        // クリアスクリプトを一時的に作成
+        file("src/main/resources/db/clear").mkdirs()
+        file("src/main/resources/db/clear/R__clear_all_data.sql").writeText("""
+            SET FOREIGN_KEY_CHECKS = 0;
+            
+            DROP TABLE IF EXISTS flyway_schema_history;
+            
+            SET @tables = NULL;
+            SELECT GROUP_CONCAT(table_schema, '.', table_name) INTO @tables
+            FROM information_schema.tables
+            WHERE table_schema = (SELECT DATABASE());
+            
+            SET @tables = CONCAT('DROP TABLE IF EXISTS ', @tables);
+            PREPARE stmt FROM @tables;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+            
+            SET FOREIGN_KEY_CHECKS = 1;
+        """.trimIndent())
+    }
+    
+    finalizedBy("flywayClean", "flywayMigrate")
+    
+    doLast {
+        // クリアスクリプトを削除
+        file("src/main/resources/db/clear").deleteRecursively()
     }
 } 
