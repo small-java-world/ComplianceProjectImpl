@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://172.27.0.2:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
+    url: jdbc:mysql://172.27.0.2:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true&characterEncoding=UTF-8&useUnicode=true
     username: compliance_user
     password: compliance_pass
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,7 +19,7 @@ spring:
     validate-on-migrate: true
     out-of-order: false
     clean-disabled: false
-    url: jdbc:mysql://172.27.0.2:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
+    url: jdbc:mysql://172.27.0.2:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true&characterEncoding=UTF-8&useUnicode=true
     user: compliance_user
     password: compliance_pass
 

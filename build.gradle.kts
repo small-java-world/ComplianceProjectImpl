@@ -63,8 +63,10 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.9.0")
     testImplementation("io.kotest:kotest-property:5.9.0")
     testImplementation("io.mockk:mockk:1.13.9")
+    testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
 
-    implementation("mysql:mysql-connector-java:8.0.33")
+    // Remove this line
+    // implementation("mysql:mysql-connector-java:8.0.33")
 }
 
 // .envファイルから環境変数を読み込む
@@ -91,7 +93,7 @@ jooq {
             jooqConfiguration.apply {
                 jdbc.apply {
                     driver = "com.mysql.cj.jdbc.Driver"
-                    url = "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+                    url = "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true"
                     user = "compliance_user"
                     password = "compliance_pass"
                 }
@@ -100,6 +102,16 @@ jooq {
                     database.apply {
                         name = "org.jooq.meta.mysql.MySQLDatabase"
                         inputSchema = "compliance_management_system"
+                        properties = listOf(
+                            org.jooq.meta.jaxb.Property().apply {
+                                key = "characterEncoding"
+                                value = "UTF-8"
+                            },
+                            org.jooq.meta.jaxb.Property().apply {
+                                key = "useUnicode"
+                                value = "true"
+                            }
+                        )
                         forcedTypes.addAll(
                             listOf(
                                 org.jooq.meta.jaxb.ForcedType().apply {
@@ -154,7 +166,23 @@ tasks.withType<JavaExec> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+    systemProperty("file.encoding", "UTF-8")
+    systemProperty("user.language", "ja")
+    systemProperty("user.country", "JP")
+    jvmArgs = listOf(
+        "-Dfile.encoding=UTF-8",
+        "-Dspring.profiles.active=test",
+        "-Dlogging.level.org.springframework=DEBUG",
+        "-Dlogging.level.org.flywaydb=DEBUG",
+        "-Dlogging.level.com.mysql=DEBUG"
+    )
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
 }
 
 tasks.withType<JavaCompile> {
@@ -242,6 +270,32 @@ flyway {
     cleanDisabled = false
 }
 
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateTest") {
+    url = "jdbc:mysql://localhost:3306/compliance_management_system_test?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "compliance_management_system_test"
+    locations = arrayOf("filesystem:src/main/resources/db/migration", "filesystem:src/test/resources/db/testdata")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairTest") {
+    url = "jdbc:mysql://localhost:3306/compliance_management_system_test?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "compliance_management_system_test"
+    locations = arrayOf("filesystem:src/main/resources/db/migration", "filesystem:src/test/resources/db/testdata")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
 buildscript {
     dependencies {
         classpath("org.flywaydb:flyway-mysql:9.22.3")
@@ -259,7 +313,7 @@ tasks.register("loadTransactionData") {
         // マスターデータの投入
         val masterFlyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
+                "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
                 "compliance_user",
                 "compliance_pass"
             )
@@ -274,7 +328,7 @@ tasks.register("loadTransactionData") {
         // トランザクションデータの投入
         val transactionFlyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
+                "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
                 "compliance_user",
                 "compliance_pass"
             )

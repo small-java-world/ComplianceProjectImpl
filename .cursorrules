@@ -110,6 +110,7 @@
 - 予期せぬ問題が発生した場合は、即座に報告し、対応策を提案してください。
 - **明示的に指示されていない変更は行わないでください。**
 - **技術スタックに記載のバージョンを勝手に変更しないでください。**
+ｰ MySQLサーバのインストールは禁止です。
 
 ---
 
@@ -128,6 +129,19 @@
 
 ## データベース
 - MySQL: 8.0
+  - Docker コンテナ上で動作
+  - プロダクション用DB:
+    - データベース名: compliance_management_system
+    - ユーザー名: compliance_user
+    - パスワード: compliance_pass
+    - 接続URL: jdbc:mysql://localhost:3306/compliance_management_system
+  - テスト用DB:
+    - データベース名: compliance_management_system_test
+    - ユーザー名: root
+    - パスワード: root
+    - 接続URL: jdbc:mysql://localhost:3306/compliance_management_system_test
+  - 文字コード: utf8mb4
+  - 照合順序: utf8mb4_unicode_ci
 - Flyway: 11.3.x
 
 ## 開発ツール
