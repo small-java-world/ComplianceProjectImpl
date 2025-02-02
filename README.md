@@ -215,3 +215,7 @@ src/
 1. `clearAllData`は全てのデータを削除します。実行前に必要なデータのバックアップを確認してください。
 2. 本番環境では`cleanDisabled = true`に設定し、誤ってデータを削除しないよう注意してください。
 3. サンプルデータの投入は開発環境でのみ使用してください。 
+
+
+
+./gradlew flywayClean flywayMigrate loadTransactionData
