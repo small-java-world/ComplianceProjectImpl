@@ -313,7 +313,7 @@ src/main/resources/db/migration/
 ## データベースの初期化とデータ投入手順
 
 ### 1. データベースの作成
-以下のコマンドでMySQLに必要なデータベースを作成します：
+以下のSQLコマンドを実行して、必要なデータベースを作成します：
 
 ```sql
 CREATE DATABASE code_master_db;
@@ -326,34 +326,41 @@ CREATE DATABASE training_db;
 ```
 
 ### 2. マイグレーションの実行
-以下の順序でマイグレーションを実行します：
+以下のコマンドを実行して、すべてのデータベースのマイグレーションを実行します：
 
 ```bash
-# 全データベースのマイグレーション実行
 ./gradlew flywayMigrateAll
+```
 
-# エラーが発生した場合は、個別にクリーンとマイグレーションを実行
+エラーが発生した場合は、個別のクリーンとマイグレーションコマンドを実行してください：
+
+```bash
 ./gradlew flywayCleanAudit flywayMigrateAudit        # 監査管理DB
 ./gradlew flywayCleanCodeMaster flywayMigrateCodeMaster  # コードマスタDB
+./gradlew flywayCleanFramework flywayMigrateFramework # フレームワーク管理DB
+./gradlew flywayCleanRisk flywayMigrateRisk          # リスク管理DB
+./gradlew flywayCleanDocument flywayMigrateDocument   # ドキュメント管理DB
+./gradlew flywayCleanOrganization flywayMigrateOrganization # 組織管理DB
+./gradlew flywayCleanTraining flywayMigrateTraining   # 教育管理DB
 ```
 
 ### 3. サンプルデータの投入
-マイグレーション完了後、以下のコマンドでサンプルデータを投入します：
+以下のコマンドを実行して、サンプルデータを投入します：
 
 ```bash
 ./gradlew loadAllData
 ```
 
-このコマンドは以下のデータを順次投入します：
+このコマンドは以下のデータを投入します：
 - コードマスタデータ
 - 組織データ
 - フレームワークデータ
 - 監査データ
 - リスクデータ
-- 文書・資産データ
+- ドキュメントと資産データ
 - 教育データ
 
 ### 注意事項
-- マイグレーションやデータ投入中にエラーが発生した場合は、エラーメッセージを確認し、必要に応じて個別のデータベースに対してクリーンとマイグレーションを実行してください。
 - 本番環境では、`flywayClean`コマンドを使用しないでください。
-- データ投入は開発環境でのみ実行してください。
+- マイグレーションとデータ投入は、必ずバックアップを取得してから実行してください。
+- エラーが発生した場合は、ログを確認し、必要に応じて個別のコマンドを実行してください。

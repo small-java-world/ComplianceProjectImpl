@@ -447,48 +447,27 @@ tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRisk") 
     cleanDisabled = false
 }
 
-// 文書管理DBのデータ投入タスク
-tasks.register("loadDocumentData") {
-    group = "Database"
-    description = "Load sample data into document_db"
+// ドキュメント管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateDocument") {
+    setGroup("database")
+    description = "ドキュメント管理DBのマイグレーションを実行"
     
-    doLast {
-        val flyway = org.flywaydb.core.Flyway.configure()
-            .dataSource(
-                "jdbc:mysql://localhost:3307/document_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
-                "root",
-                "root"
-            )
-            .locations("filesystem:src/main/resources/db/transactiondata/document_db")
-            .baselineOnMigrate(true)
-            .outOfOrder(true)
-            .validateOnMigrate(false)
-            .load()
-
-        flyway.migrate()
-    }
+    url = "jdbc:mysql://localhost:3306/document_asset_db"
+    user = "root"
+    password = "root"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/document")
+    baselineOnMigrate = true
+    outOfOrder = true
 }
 
-// 資産管理DBのデータ投入タスク
-tasks.register("loadAssetData") {
-    group = "Database"
-    description = "Load sample data into asset_db"
+// ドキュメント管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanDocument") {
+    setGroup("database")
+    description = "ドキュメント管理DBのマイグレーション履歴をクリーン"
     
-    doLast {
-        val flyway = org.flywaydb.core.Flyway.configure()
-            .dataSource(
-                "jdbc:mysql://localhost:3307/asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
-                "root",
-                "root"
-            )
-            .locations("filesystem:src/main/resources/db/transactiondata/asset_db")
-            .baselineOnMigrate(true)
-            .outOfOrder(true)
-            .validateOnMigrate(false)
-            .load()
-
-        flyway.migrate()
-    }
+    url = "jdbc:mysql://localhost:3306/document_asset_db"
+    user = "root"
+    password = "root"
 }
 
 // 全DBのデータ投入タスク
@@ -590,18 +569,41 @@ tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairTraining"
     cleanDisabled = false
 }
 
-// 全DBのマイグレーションを実行するタスク
+// 全DBのマイグレーション実行タスク
 tasks.register("flywayMigrateAll") {
-    group = "Database"
-    description = "Migrate all databases"
+    setGroup("database")
+    description = "全データベースのマイグレーションを実行"
+    
+    // 前処理として各DBのクリーンを実行
     dependsOn(
-        "flywayMigrateCodeMaster",
-        "flywayMigrateOrganization",
-        "flywayMigrateFramework",
+        "flywayCleanAudit",
+        "flywayCleanCodeMaster",
+        "flywayCleanFramework",
+        "flywayCleanRisk",
+        "flywayCleanDocument",
+        "flywayCleanOrganization",
+        "flywayCleanTraining"
+    )
+    
+    // 各DBのマイグレーションタスクを依存関係に追加
+    dependsOn(
         "flywayMigrateAudit",
+        "flywayMigrateCodeMaster",
+        "flywayMigrateFramework",
         "flywayMigrateRisk",
+        "flywayMigrateDocument",
+        "flywayMigrateOrganization",
         "flywayMigrateTraining"
     )
+
+    // タスクの実行順序を制御
+    tasks.findByName("flywayMigrateAudit")?.mustRunAfter("flywayCleanAudit")
+    tasks.findByName("flywayMigrateCodeMaster")?.mustRunAfter("flywayCleanCodeMaster")
+    tasks.findByName("flywayMigrateFramework")?.mustRunAfter("flywayCleanFramework")
+    tasks.findByName("flywayMigrateRisk")?.mustRunAfter("flywayCleanRisk")
+    tasks.findByName("flywayMigrateDocument")?.mustRunAfter("flywayCleanDocument")
+    tasks.findByName("flywayMigrateOrganization")?.mustRunAfter("flywayCleanOrganization")
+    tasks.findByName("flywayMigrateTraining")?.mustRunAfter("flywayCleanTraining")
 }
 
 // コードマスタDBのデータ投入タスク
@@ -727,6 +729,50 @@ tasks.register("loadRiskData") {
                 "root"
             )
             .locations("filesystem:src/main/resources/db/transactiondata/risk_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// ドキュメント管理DBのデータ投入タスク
+tasks.register("loadDocumentData") {
+    group = "Database"
+    description = "Load sample data into document_db"
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3307/document_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/document_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// 資産管理DBのデータ投入タスク
+tasks.register("loadAssetData") {
+    group = "Database"
+    description = "Load sample data into asset_db"
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3307/asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/asset_db")
             .baselineOnMigrate(true)
             .outOfOrder(true)
             .validateOnMigrate(false)
