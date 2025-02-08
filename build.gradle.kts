@@ -345,36 +345,18 @@ tasks.register("loadTransactionData") {
 
 tasks.register("clearAllData") {
     group = "Database"
-    description = "全てのテーブルのデータをクリアします"
+    description = "全てのデータベースのデータをクリアします"
     
-    doFirst {
-        // クリアスクリプトを一時的に作成
-        file("src/main/resources/db/clear").mkdirs()
-        file("src/main/resources/db/clear/R__clear_all_data.sql").writeText("""
-            SET FOREIGN_KEY_CHECKS = 0;
-            
-            DROP TABLE IF EXISTS flyway_schema_history;
-            
-            SET @tables = NULL;
-            SELECT GROUP_CONCAT(table_schema, '.', table_name) INTO @tables
-            FROM information_schema.tables
-            WHERE table_schema = (SELECT DATABASE());
-            
-            SET @tables = CONCAT('DROP TABLE IF EXISTS ', @tables);
-            PREPARE stmt FROM @tables;
-            EXECUTE stmt;
-            DEALLOCATE PREPARE stmt;
-            
-            SET FOREIGN_KEY_CHECKS = 1;
-        """.trimIndent())
-    }
-    
-    finalizedBy("flywayClean", "flywayMigrate")
-    
-    doLast {
-        // クリアスクリプトを削除
-        file("src/main/resources/db/clear").deleteRecursively()
-    }
+    dependsOn(
+        "flywayCleanAsset",
+        "flywayCleanAudit",
+        "flywayCleanCodeMaster",
+        "flywayCleanFramework",
+        "flywayCleanRisk",
+        "flywayCleanDocument",
+        "flywayCleanOrganization",
+        "flywayCleanTraining"
+    )
 }
 
 // コードマスタDB用のFlywayタスク
@@ -582,7 +564,8 @@ tasks.register("flywayMigrateAll") {
         "flywayCleanRisk",
         "flywayCleanDocument",
         "flywayCleanOrganization",
-        "flywayCleanTraining"
+        "flywayCleanTraining",
+        "flywayCleanAsset"
     )
     
     // 各DBのマイグレーションタスクを依存関係に追加
@@ -593,7 +576,8 @@ tasks.register("flywayMigrateAll") {
         "flywayMigrateRisk",
         "flywayMigrateDocument",
         "flywayMigrateOrganization",
-        "flywayMigrateTraining"
+        "flywayMigrateTraining",
+        "flywayMigrateAsset"
     )
 
     // タスクの実行順序を制御
@@ -604,6 +588,7 @@ tasks.register("flywayMigrateAll") {
     tasks.findByName("flywayMigrateDocument")?.mustRunAfter("flywayCleanDocument")
     tasks.findByName("flywayMigrateOrganization")?.mustRunAfter("flywayCleanOrganization")
     tasks.findByName("flywayMigrateTraining")?.mustRunAfter("flywayCleanTraining")
+    tasks.findByName("flywayMigrateAsset")?.mustRunAfter("flywayCleanAsset")
 }
 
 // コードマスタDBのデータ投入タスク
@@ -758,6 +743,29 @@ tasks.register("loadDocumentData") {
 
         flyway.migrate()
     }
+}
+
+// 資産管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateAsset") {
+    url = "jdbc:mysql://localhost:3307/asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "asset_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/asset_db")
+    validateOnMigrate = true
+    outOfOrder = true
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// 資産管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanAsset") {
+    url = "jdbc:mysql://localhost:3307/asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "asset_db"
 }
 
 // 資産管理DBのデータ投入タスク
