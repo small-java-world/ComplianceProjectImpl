@@ -309,3 +309,51 @@ src/main/resources/db/migration/
 1. マイグレーション実行前に、必要なデータベースが作成されていることを確認してください。
 2. 各DBは独立して管理され、クロスDB参照は論理的な参照として扱われます。
 3. アプリケーション層でデータの整合性を確保します。
+
+## データベースの初期化とデータ投入手順
+
+### 1. データベースの作成
+以下のコマンドでMySQLに必要なデータベースを作成します：
+
+```sql
+CREATE DATABASE code_master_db;
+CREATE DATABASE organization_db;
+CREATE DATABASE framework_db;
+CREATE DATABASE audit_db;
+CREATE DATABASE risk_db;
+CREATE DATABASE document_asset_db;
+CREATE DATABASE training_db;
+```
+
+### 2. マイグレーションの実行
+以下の順序でマイグレーションを実行します：
+
+```bash
+# 全データベースのマイグレーション実行
+./gradlew flywayMigrateAll
+
+# エラーが発生した場合は、個別にクリーンとマイグレーションを実行
+./gradlew flywayCleanAudit flywayMigrateAudit        # 監査管理DB
+./gradlew flywayCleanCodeMaster flywayMigrateCodeMaster  # コードマスタDB
+```
+
+### 3. サンプルデータの投入
+マイグレーション完了後、以下のコマンドでサンプルデータを投入します：
+
+```bash
+./gradlew loadAllData
+```
+
+このコマンドは以下のデータを順次投入します：
+- コードマスタデータ
+- 組織データ
+- フレームワークデータ
+- 監査データ
+- リスクデータ
+- 文書・資産データ
+- 教育データ
+
+### 注意事項
+- マイグレーションやデータ投入中にエラーが発生した場合は、エラーメッセージを確認し、必要に応じて個別のデータベースに対してクリーンとマイグレーションを実行してください。
+- 本番環境では、`flywayClean`コマンドを使用しないでください。
+- データ投入は開発環境でのみ実行してください。
