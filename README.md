@@ -216,6 +216,96 @@ src/
 2. 本番環境では`cleanDisabled = true`に設定し、誤ってデータを削除しないよう注意してください。
 3. サンプルデータの投入は開発環境でのみ使用してください。 
 
+## データベース構成
 
+システムは以下の7つのデータベースで構成されています：
 
-./gradlew flywayClean flywayMigrate loadTransactionData
+1. コードマスタDB (code_master_db)
+2. 組織管理DB (organization_db)
+3. フレームワーク管理DB (framework_db)
+4. 監査管理DB (audit_db)
+5. リスク管理DB (risk_db)
+6. 文書・資産管理DB (document_asset_db)
+7. 教育管理DB (training_db)
+
+## Flywayマイグレーションコマンド
+
+### 全DBのマイグレーション実行
+```bash
+./gradlew flywayMigrateAll
+```
+
+### 個別DBのマイグレーション
+
+#### コードマスタDB
+```bash
+./gradlew flywayMigrateCodeMaster
+```
+
+#### 組織管理DB
+```bash
+./gradlew flywayMigrateOrganization
+```
+
+#### フレームワーク管理DB
+```bash
+./gradlew flywayMigrateFramework
+```
+
+#### 監査管理DB
+```bash
+./gradlew flywayMigrateAudit
+```
+
+#### リスク管理DB
+```bash
+./gradlew flywayMigrateRisk
+```
+
+#### 文書・資産管理DB
+```bash
+./gradlew flywayMigrateDocumentAsset
+```
+
+#### 教育管理DB
+```bash
+./gradlew flywayMigrateTraining
+```
+
+### マイグレーションファイルの配置
+
+各DBのマイグレーションファイルは以下のディレクトリに配置します：
+
+```
+src/main/resources/db/migration/
+├── code_master_db/
+├── organization_db/
+├── framework_db/
+├── audit_db/
+├── risk_db/
+├── document_asset_db/
+└── training_db/
+```
+
+### マイグレーションファイルの命名規則
+
+- バージョン番号は `V1.0.0` のような形式を使用
+- ファイル名は `V{バージョン}__{説明}.sql` の形式
+- 例: `V1.0.0__create_m_code_table.sql`
+
+### データベース接続情報
+
+各DBは以下の接続情報で設定されています：
+
+- ホスト: localhost
+- ポート: 3306
+- ユーザー: root
+- パスワード: root
+- 文字コード: utf8mb4
+- 照合順序: utf8mb4_unicode_ci
+
+### 注意事項
+
+1. マイグレーション実行前に、必要なデータベースが作成されていることを確認してください。
+2. 各DBは独立して管理され、クロスDB参照は論理的な参照として扱われます。
+3. アプリケーション層でデータの整合性を確保します。

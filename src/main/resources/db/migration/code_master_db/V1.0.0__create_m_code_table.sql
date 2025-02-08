@@ -1,0 +1,20 @@
+CREATE TABLE M_CODE (
+    code_category      VARCHAR(50)  NOT NULL,
+    code_division      VARCHAR(50)  NOT NULL,
+    code               VARCHAR(50)  NOT NULL,
+    code_name          VARCHAR(100) NOT NULL,
+    code_short_name    VARCHAR(50)  NULL,
+    extension1         VARCHAR(100) NULL,
+    extension2         VARCHAR(100) NULL,
+    extension3         VARCHAR(100) NULL,
+    extension4         VARCHAR(100) NULL,
+    extension5         VARCHAR(100) NULL,
+    extension6         VARCHAR(100) NULL,
+    extension7         VARCHAR(100) NULL,
+    extension8         VARCHAR(100) NULL,
+    extension9         VARCHAR(100) NULL,
+    extension10        VARCHAR(100) NULL,
+    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_M_CODE PRIMARY KEY (code_category, code_division, code)
+); 

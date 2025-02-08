@@ -375,4 +375,300 @@ tasks.register("clearAllData") {
         // クリアスクリプトを削除
         file("src/main/resources/db/clear").deleteRecursively()
     }
+}
+
+// コードマスタDB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateCodeMaster") {
+    url = "jdbc:mysql://localhost:3306/code_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "code_master_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/code_master_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// 組織管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateOrganization") {
+    url = "jdbc:mysql://localhost:3306/organization_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "organization_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/organization_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// フレームワーク管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateFramework") {
+    url = "jdbc:mysql://localhost:3306/framework_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "framework_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/framework_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// 監査管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateAudit") {
+    url = "jdbc:mysql://localhost:3306/audit_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "audit_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/audit_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// リスク管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRisk") {
+    url = "jdbc:mysql://localhost:3306/risk_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "risk_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/risk_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// 文書・資産管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateDocumentAsset") {
+    url = "jdbc:mysql://localhost:3306/document_asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "document_asset_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/document_asset_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// 教育管理DB用のFlywayタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateTraining") {
+    url = "jdbc:mysql://localhost:3306/training_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "training_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/training_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// 全DBのマイグレーションを実行するタスク
+tasks.register("flywayMigrateAll") {
+    group = "Database"
+    description = "Migrate all databases"
+    dependsOn(
+        "flywayMigrateCodeMaster",
+        "flywayMigrateOrganization",
+        "flywayMigrateFramework",
+        "flywayMigrateAudit",
+        "flywayMigrateRisk",
+        "flywayMigrateDocumentAsset",
+        "flywayMigrateTraining"
+    )
+}
+
+// コードマスタDBのトランザクションデータ投入
+tasks.register("loadCodeMasterData") {
+    group = "Database"
+    description = "Load transaction data into code_master_db"
+    
+    dependsOn("flywayMigrateCodeMaster")
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/code_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/code_master_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// 組織管理DBのトランザクションデータ投入
+tasks.register("loadOrganizationData") {
+    group = "Database"
+    description = "Load transaction data into organization_db"
+    
+    dependsOn("flywayMigrateOrganization")
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/organization_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/organization_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// フレームワーク管理DBのトランザクションデータ投入
+tasks.register("loadFrameworkData") {
+    group = "Database"
+    description = "Load transaction data into framework_db"
+    
+    dependsOn("flywayMigrateFramework")
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/framework_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/framework_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// 監査管理DBのトランザクションデータ投入
+tasks.register("loadAuditData") {
+    group = "Database"
+    description = "Load transaction data into audit_db"
+    
+    dependsOn("flywayMigrateAudit")
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/audit_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/audit_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// リスク管理DBのトランザクションデータ投入
+tasks.register("loadRiskData") {
+    group = "Database"
+    description = "Load transaction data into risk_db"
+    
+    dependsOn("flywayMigrateRisk")
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/risk_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/risk_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// 文書・資産管理DBのトランザクションデータ投入
+tasks.register("loadDocumentAssetData") {
+    group = "Database"
+    description = "Load transaction data into document_asset_db"
+    
+    dependsOn("flywayMigrateDocumentAsset")
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/document_asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/document_asset_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// 教育管理DBのトランザクションデータ投入
+tasks.register("loadTrainingData") {
+    group = "Database"
+    description = "Load transaction data into training_db"
+    
+    dependsOn("flywayMigrateTraining")
+    
+    doLast {
+        val flyway = org.flywaydb.core.Flyway.configure()
+            .dataSource(
+                "jdbc:mysql://localhost:3306/training_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "root",
+                "root"
+            )
+            .locations("filesystem:src/main/resources/db/transactiondata/training_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+
+        flyway.migrate()
+    }
+}
+
+// 全DBのトランザクションデータ投入
+tasks.register("loadAllData") {
+    group = "Database"
+    description = "Load transaction data into all databases"
+    dependsOn(
+        "loadCodeMasterData",
+        "loadOrganizationData",
+        "loadFrameworkData",
+        "loadAuditData",
+        "loadRiskData",
+        "loadDocumentAssetData",
+        "loadTrainingData"
+    )
 } 
