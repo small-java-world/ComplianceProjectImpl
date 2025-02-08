@@ -470,7 +470,30 @@ tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateTrainin
     defaultSchema = "training_db"
     locations = arrayOf("filesystem:src/main/resources/db/migration/training_db")
     validateOnMigrate = true
-    outOfOrder = false
+    outOfOrder = true
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// 教育管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanTraining") {
+    url = "jdbc:mysql://localhost:3306/training_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "training_db"
+}
+
+// 教育管理DB用のFlywayリペアタスク
+tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairTraining") {
+    url = "jdbc:mysql://localhost:3306/training_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "training_db"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/training_db")
+    validateOnMigrate = true
+    outOfOrder = true
     baselineOnMigrate = true
     cleanDisabled = false
 }
@@ -490,17 +513,15 @@ tasks.register("flywayMigrateAll") {
     )
 }
 
-// コードマスタDBのトランザクションデータ投入
+// コードマスタDBのデータ投入タスク
 tasks.register("loadCodeMasterData") {
     group = "Database"
-    description = "Load transaction data into code_master_db"
-    
-    dependsOn("flywayMigrateCodeMaster")
+    description = "Load sample data into code_master_db"
     
     doLast {
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/code_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "jdbc:mysql://localhost:3306/code_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
                 "root",
                 "root"
             )
@@ -514,17 +535,15 @@ tasks.register("loadCodeMasterData") {
     }
 }
 
-// 組織管理DBのトランザクションデータ投入
+// 組織管理DBのデータ投入タスク
 tasks.register("loadOrganizationData") {
     group = "Database"
-    description = "Load transaction data into organization_db"
-    
-    dependsOn("flywayMigrateOrganization")
+    description = "Load sample data into organization_db"
     
     doLast {
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/organization_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "jdbc:mysql://localhost:3306/organization_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
                 "root",
                 "root"
             )
@@ -538,17 +557,15 @@ tasks.register("loadOrganizationData") {
     }
 }
 
-// フレームワーク管理DBのトランザクションデータ投入
+// フレームワーク管理DBのデータ投入タスク
 tasks.register("loadFrameworkData") {
     group = "Database"
-    description = "Load transaction data into framework_db"
-    
-    dependsOn("flywayMigrateFramework")
+    description = "Load sample data into framework_db"
     
     doLast {
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/framework_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "jdbc:mysql://localhost:3306/framework_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
                 "root",
                 "root"
             )
@@ -562,17 +579,15 @@ tasks.register("loadFrameworkData") {
     }
 }
 
-// 監査管理DBのトランザクションデータ投入
+// 監査管理DBのデータ投入タスク
 tasks.register("loadAuditData") {
     group = "Database"
-    description = "Load transaction data into audit_db"
-    
-    dependsOn("flywayMigrateAudit")
+    description = "Load sample data into audit_db"
     
     doLast {
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/audit_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "jdbc:mysql://localhost:3306/audit_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
                 "root",
                 "root"
             )
@@ -586,17 +601,15 @@ tasks.register("loadAuditData") {
     }
 }
 
-// リスク管理DBのトランザクションデータ投入
+// リスク管理DBのデータ投入タスク
 tasks.register("loadRiskData") {
     group = "Database"
-    description = "Load transaction data into risk_db"
-    
-    dependsOn("flywayMigrateRisk")
+    description = "Load sample data into risk_db"
     
     doLast {
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/risk_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "jdbc:mysql://localhost:3306/risk_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
                 "root",
                 "root"
             )
@@ -610,17 +623,15 @@ tasks.register("loadRiskData") {
     }
 }
 
-// 文書・資産管理DBのトランザクションデータ投入
+// 文書・資産管理DBのデータ投入タスク
 tasks.register("loadDocumentAssetData") {
     group = "Database"
-    description = "Load transaction data into document_asset_db"
-    
-    dependsOn("flywayMigrateDocumentAsset")
+    description = "Load sample data into document_asset_db"
     
     doLast {
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/document_asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "jdbc:mysql://localhost:3306/document_asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
                 "root",
                 "root"
             )
@@ -634,17 +645,15 @@ tasks.register("loadDocumentAssetData") {
     }
 }
 
-// 教育管理DBのトランザクションデータ投入
+// 教育管理DBのデータ投入タスク
 tasks.register("loadTrainingData") {
     group = "Database"
-    description = "Load transaction data into training_db"
-    
-    dependsOn("flywayMigrateTraining")
+    description = "Load sample data into training_db"
     
     doLast {
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(
-                "jdbc:mysql://localhost:3306/training_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true",
+                "jdbc:mysql://localhost:3306/training_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC",
                 "root",
                 "root"
             )
@@ -658,10 +667,11 @@ tasks.register("loadTrainingData") {
     }
 }
 
-// 全DBのトランザクションデータ投入
+// 全DBのデータ投入タスク
 tasks.register("loadAllData") {
     group = "Database"
-    description = "Load transaction data into all databases"
+    description = "Load sample data into all databases"
+    
     dependsOn(
         "loadCodeMasterData",
         "loadOrganizationData",
@@ -671,4 +681,58 @@ tasks.register("loadAllData") {
         "loadDocumentAssetData",
         "loadTrainingData"
     )
+}
+
+// コードマスタDB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanCodeMaster") {
+    url = "jdbc:mysql://localhost:3306/code_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "code_master_db"
+}
+
+// 組織管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanOrganization") {
+    url = "jdbc:mysql://localhost:3306/organization_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "organization_db"
+}
+
+// フレームワーク管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanFramework") {
+    url = "jdbc:mysql://localhost:3306/framework_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "framework_db"
+}
+
+// 監査管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanAudit") {
+    url = "jdbc:mysql://localhost:3306/audit_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "audit_db"
+}
+
+// リスク管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRisk") {
+    url = "jdbc:mysql://localhost:3306/risk_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "risk_db"
+}
+
+// 文書・資産管理DB用のFlywayクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanDocumentAsset") {
+    url = "jdbc:mysql://localhost:3306/document_asset_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "document_asset_db"
 } 
