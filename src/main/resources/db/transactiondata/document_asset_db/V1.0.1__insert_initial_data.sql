@@ -1,0 +1,108 @@
+-- 文書
+INSERT INTO Document (document_id, title, category_code, department_id, created_at, updated_at)
+VALUES
+-- 情報セキュリティ文書
+(1, '情報セキュリティ基本方針', 'POLICY', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, '情報セキュリティ管理標準', 'STANDARD', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 'アクセス制御手順', 'PROCEDURE', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 'インシデント対応手順', 'PROCEDURE', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 'リスクアセスメントガイドライン', 'GUIDELINE', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+
+-- コンプライアンス文書
+(6, 'コンプライアンス基本方針', 'POLICY', 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, '法令遵守マニュアル', 'STANDARD', 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(8, '内部監査手順', 'PROCEDURE', 6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(9, '是正処置手順', 'PROCEDURE', 6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(10, '文書管理規程', 'STANDARD', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 文書バージョン
+INSERT INTO DocumentVersion (document_version_id, document_id, version_number, status_code, content_url, created_at, updated_at)
+VALUES
+(1, 1, '1.0', 'APPROVED', '/documents/1/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 2, '1.0', 'APPROVED', '/documents/2/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 3, '1.0', 'APPROVED', '/documents/3/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 4, '1.0', 'APPROVED', '/documents/4/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 5, '1.0', 'APPROVED', '/documents/5/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 6, '1.0', 'APPROVED', '/documents/6/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, 7, '1.0', 'APPROVED', '/documents/7/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(8, 8, '1.0', 'APPROVED', '/documents/8/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(9, 9, '1.0', 'APPROVED', '/documents/9/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(10, 10, '1.0', 'APPROVED', '/documents/10/1.0/content.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 承認ワークフロー
+INSERT INTO ApprovalWorkflow (workflow_id, document_version_id, approver_id, status_code, comment, approved_at, created_at, updated_at)
+VALUES
+(1, 1, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 2, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 3, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 4, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 5, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 6, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, 7, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(8, 8, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(9, 9, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(10, 10, 1, 'APPROVED', '承認済み', '2024-03-31', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 建物
+INSERT INTO Building (building_id, building_name, address, created_at, updated_at)
+VALUES
+(1, '本社ビル', '東京都千代田区1-1-1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, '第2ビル', '東京都千代田区1-1-2', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 'データセンター', '東京都江東区2-2-2', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- フロア
+INSERT INTO Floor (floor_id, building_id, floor_number, floor_name, created_at, updated_at)
+VALUES
+(1, 1, 1, '1階', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 1, 2, '2階', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 1, 3, '3階', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 2, 1, '1階', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 2, 2, '2階', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 3, 1, '1階', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, 3, 2, '2階', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 部屋
+INSERT INTO Room (room_id, floor_id, room_name, room_number, created_at, updated_at)
+VALUES
+(1, 1, 'エントランス', '101', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 1, '会議室1', '102', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 2, 'オフィス1', '201', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 2, 'サーバールーム', '202', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 3, 'オフィス2', '301', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 6, 'サーバールーム1', 'DC101', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, 6, 'サーバールーム2', 'DC102', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 資産
+INSERT INTO Asset (asset_id, name, asset_type_code, classification_code, room_id, description, created_at, updated_at)
+VALUES
+-- サーバー
+(1, 'Webサーバー1', 'SERVER', 'CONFIDENTIAL', 4, 'プロダクション用Webサーバー', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 'DBサーバー1', 'SERVER', 'CONFIDENTIAL', 4, 'プロダクション用DBサーバー', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 'ファイルサーバー1', 'SERVER', 'CONFIDENTIAL', 4, '文書管理用ファイルサーバー', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+
+-- ネットワーク機器
+(4, 'コアスイッチ1', 'NETWORK', 'CONFIDENTIAL', 4, 'コアネットワークスイッチ', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 'ファイアウォール1', 'NETWORK', 'CONFIDENTIAL', 4, 'ファイアウォール装置', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+
+-- PC・モバイル機器
+(6, '開発用PC1', 'PC', 'INTERNAL', 3, '開発者用PC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, '開発用PC2', 'PC', 'INTERNAL', 3, '開発者用PC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(8, 'モバイルPC1', 'MOBILE', 'INTERNAL', 3, '営業用モバイルPC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+
+-- ソフトウェア・データベース
+(9, '業務システム1', 'SOFTWARE', 'CONFIDENTIAL', NULL, '基幹業務システム', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(10, '顧客データベース', 'DATABASE', 'CONFIDENTIAL', NULL, '顧客情報データベース', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 資産所有者
+INSERT INTO AssetOwner (asset_owner_id, asset_id, owner_id, responsibility_code, created_at, updated_at)
+VALUES
+(1, 1, 1, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 2, 1, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 3, 1, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 4, 1, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 5, 1, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 6, 2, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, 7, 2, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(8, 8, 2, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(9, 9, 1, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(10, 10, 1, 'OWNER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP); 
