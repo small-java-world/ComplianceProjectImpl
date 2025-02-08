@@ -183,6 +183,7 @@ tasks.withType<Test> {
         showCauses = true
         showStackTraces = true
     }
+    dependsOn("flywayMigrateTest")
 }
 
 tasks.withType<JavaCompile> {
@@ -271,7 +272,7 @@ flyway {
 }
 
 tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateTest") {
-    url = "jdbc:mysql://localhost:3306/compliance_management_system_test?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true"
+    url = "jdbc:mysql://localhost:3306/compliance_management_system_test?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
     driver = "com.mysql.cj.jdbc.Driver"
