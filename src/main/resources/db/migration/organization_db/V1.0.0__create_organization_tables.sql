@@ -45,6 +45,7 @@ CREATE TABLE PermissionDetail (
     permission_type VARCHAR(50)    NOT NULL,
     target_id       VARCHAR(36)   NULL,
     access_level    VARCHAR(50)    NOT NULL,
+    department_scope VARCHAR(50)    NOT NULL,
     created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_PermissionDetail PRIMARY KEY (permission_id),
