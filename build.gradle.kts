@@ -582,4 +582,219 @@ tasks.register("recreateAllDatabases") {
     tasks.findByName("createAllDatabases")?.mustRunAfter("dropAllDatabases")
     tasks.findByName("flywayMigrateAll")?.mustRunAfter("createAllDatabases")
     tasks.findByName("migrateRiskDatabases")?.mustRunAfter("createAllDatabases")
+}
+
+tasks.register("createTestDatabases") {
+    group = "Database"
+    description = "Creates all test databases"
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test",
+            "organization_db_test",
+            "reference_data_db_test",
+            "risk_master_db_test",
+            "risk_transaction_db_test",
+            "asset_db_test",
+            "framework_db_test",
+            "document_db_test",
+            "training_db_test",
+            "audit_db_test",
+            "compliance_db_test"
+        )
+
+        // JDBCドライバーをクラスパスに追加
+        val jdbcConfiguration = configurations["jdbcDriver"]
+        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
+        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
+        Thread.currentThread().contextClassLoader = classLoader
+
+        // JDBCドライバーを登録
+        Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
+
+        testDatabases.forEach { dbName ->
+            try {
+                val connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false",
+                    "root",
+                    "root"
+                )
+                connection.use { conn ->
+                    conn.createStatement().use { stmt ->
+                        stmt.execute("CREATE DATABASE IF NOT EXISTS $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                        println("✓ Created database: $dbName")
+                    }
+                }
+            } catch (e: Exception) {
+                throw GradleException("Failed to create database $dbName: ${e.message}")
+            }
+        }
+    }
+}
+
+tasks.register("verifyTestDbConnections") {
+    group = "Database"
+    description = "Verifies connections to all test databases"
+    dependsOn("createTestDatabases")
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test",
+            "organization_db_test",
+            "reference_data_db_test",
+            "risk_master_db_test",
+            "risk_transaction_db_test",
+            "asset_db_test",
+            "framework_db_test",
+            "document_db_test",
+            "training_db_test",
+            "audit_db_test",
+            "compliance_db_test"
+        )
+
+        // JDBCドライバーをクラスパスに追加
+        val jdbcConfiguration = configurations["jdbcDriver"]
+        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
+        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
+        Thread.currentThread().contextClassLoader = classLoader
+
+        // JDBCドライバーを登録
+        Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
+
+        testDatabases.forEach { dbName ->
+            try {
+                val connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3307/$dbName?allowPublicKeyRetrieval=true&useSSL=false",
+                    "root",
+                    "root"
+                )
+                connection.use { conn ->
+                    conn.createStatement().use { stmt ->
+                        val rs = stmt.executeQuery("SELECT 1")
+                        if (rs.next()) {
+                            println("✓ Successfully connected to $dbName")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                throw GradleException("Failed to connect to $dbName: ${e.message}")
+            }
+        }
+    }
+}
+
+// テストタスクに接続確認を追加
+tasks.test {
+    dependsOn("verifyTestDbConnections")
+}
+
+// テスト用データベースのマイグレーションタスク
+tasks.register("migrateTestDatabases") {
+    group = "Database"
+    description = "Migrate all test databases"
+    dependsOn("createTestDatabases")
+    
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test" to "code_master_db",
+            "organization_db_test" to "organization_db",
+            "reference_data_db_test" to "reference_data_db",
+            "risk_master_db_test" to "risk_master_db",
+            "risk_transaction_db_test" to "risk_transaction_db",
+            "asset_db_test" to "asset_db",
+            "framework_db_test" to "framework_db",
+            "document_db_test" to "document_db",
+            "training_db_test" to "training_db",
+            "audit_db_test" to "audit_db",
+            "compliance_db_test" to "compliance_db"
+        )
+
+        testDatabases.forEach { (testDb, sourceDb) ->
+            val flyway = org.flywaydb.core.Flyway.configure()
+                .dataSource(
+                    "jdbc:mysql://localhost:3307/${testDb}?allowPublicKeyRetrieval=true&useSSL=false",
+                    "root",
+                    "root"
+                )
+                .locations("filesystem:src/main/resources/db/migration/${sourceDb}")
+                .load()
+
+            try {
+                flyway.migrate()
+                println("✓ Migrated database: $testDb")
+            } catch (e: Exception) {
+                throw GradleException("Failed to migrate database $testDb: ${e.message}")
+            }
+        }
+    }
+}
+
+// テスト用データベースのクリーンタスク
+tasks.register("cleanTestDatabases") {
+    group = "Database"
+    description = "Clean all test databases"
+    
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test",
+            "organization_db_test",
+            "reference_data_db_test",
+            "risk_master_db_test",
+            "risk_transaction_db_test",
+            "asset_db_test",
+            "framework_db_test",
+            "document_db_test",
+            "training_db_test",
+            "audit_db_test",
+            "compliance_db_test"
+        )
+
+        // JDBCドライバーをクラスパスに追加
+        val jdbcConfiguration = configurations["jdbcDriver"]
+        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
+        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
+        Thread.currentThread().contextClassLoader = classLoader
+
+        // JDBCドライバーを登録
+        Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
+
+        testDatabases.forEach { dbName ->
+            try {
+                val connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false",
+                    "root",
+                    "root"
+                )
+                connection.use { conn ->
+                    conn.createStatement().use { stmt ->
+                        stmt.execute("DROP DATABASE IF EXISTS $dbName")
+                        println("✓ Dropped database: $dbName")
+                    }
+                }
+            } catch (e: Exception) {
+                throw GradleException("Failed to drop database $dbName: ${e.message}")
+            }
+        }
+    }
+}
+
+// テスト用データベースの再作成タスク
+tasks.register("recreateTestDatabases") {
+    group = "Database"
+    description = "Recreate all test databases"
+    
+    dependsOn("cleanTestDatabases")
+    dependsOn("createTestDatabases")
+    dependsOn("migrateTestDatabases")
+    
+    tasks.findByName("createTestDatabases")?.mustRunAfter("cleanTestDatabases")
+    tasks.findByName("migrateTestDatabases")?.mustRunAfter("createTestDatabases")
+}
+
+// verifyTestDbConnectionsタスクの依存関係を更新
+tasks.named("verifyTestDbConnections") {
+    dependsOn("migrateTestDatabases")
+}
+
+// テストタスクの依存関係を更新
+tasks.test {
+    dependsOn("recreateTestDatabases")
 } 
