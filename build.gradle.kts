@@ -26,6 +26,10 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    create("jdbcDriver")
+}
+
 dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -49,6 +53,9 @@ dependencies {
     implementation("org.jooq:jooq-codegen:3.19.1")
     jooqGenerator("com.mysql:mysql-connector-j:8.0.33")
 
+    // JDBC driver
+    add("jdbcDriver", "com.mysql:mysql-connector-j:8.0.33")
+
     // AWS SDK for S3/MinIO
     implementation("software.amazon.awssdk:s3:2.22.12")
 
@@ -65,9 +72,6 @@ dependencies {
     testImplementation("io.kotest:kotest-property:5.9.0")
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
-
-    // Remove this line
-    // implementation("mysql:mysql-connector-java:8.0.33")
 }
 
 // .envファイルから環境変数を読み込む
@@ -873,4 +877,127 @@ tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairDocument"
     user = "root"
     password = "root"
     locations = arrayOf("filesystem:src/main/resources/db/migration/document_db")
+}
+
+// リスクデータベースの作成タスク
+tasks.register("createRiskDatabases") {
+    group = "Database"
+    description = "リスク関連のデータベースを作成します"
+    doFirst {
+        // データベースの作成
+        val jdbcConfiguration = configurations["jdbcDriver"]
+        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
+        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
+        Thread.currentThread().contextClassLoader = classLoader
+
+        val driver = "com.mysql.cj.jdbc.Driver"
+        val baseUrl = "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+        val user = "root"
+        val password = "root"
+
+        try {
+            Class.forName(driver)
+            DriverManager.getConnection(baseUrl, user, password).use { connection ->
+                connection.createStatement().use { statement ->
+                    // リスクマスタデータベースの作成
+                    statement.executeUpdate("DROP DATABASE IF EXISTS risk_master_db")
+                    statement.executeUpdate("CREATE DATABASE risk_master_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                    println("リスクマスタデータベースを作成しました")
+
+                    // リスクトランザクションデータベースの作成
+                    statement.executeUpdate("DROP DATABASE IF EXISTS risk_transaction_db")
+                    statement.executeUpdate("CREATE DATABASE risk_transaction_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                    println("リスクトランザクションデータベースを作成しました")
+                }
+            }
+        } catch (e: Exception) {
+            println("データベースの作成中にエラーが発生しました: ${e.message}")
+            throw e
+        }
+    }
+}
+
+// リスクマスターデータベースのマイグレーションタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskMaster") {
+    setGroup("flyway")
+    description = "Migrate risk master database"
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/risk_master_db")
+}
+
+// リスクトランザクションデータベースのマイグレーションタスク
+tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskTransaction") {
+    setGroup("flyway")
+    description = "Migrate risk transaction database"
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/risk_transaction_db")
+}
+
+// リスクデータベースのマイグレーションを実行するタスク
+tasks.register("migrateRiskDatabases") {
+    setGroup("flyway")
+    description = "Migrate all risk databases"
+    dependsOn("flywayMigrateRiskMaster", "flywayMigrateRiskTransaction")
+}
+
+// リスクマスターデータベースのリペアタスク
+tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskMaster") {
+    setGroup("flyway")
+    description = "Repair risk master database migration history"
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/risk_master_db")
+}
+
+// リスクトランザクションデータベースのリペアタスク
+tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskTransaction") {
+    setGroup("flyway")
+    description = "Repair risk transaction database migration history"
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/risk_transaction_db")
+}
+
+// リスクデータベースのリペアを実行するタスク
+tasks.register("repairRiskDatabases") {
+    setGroup("flyway")
+    description = "Repair all risk databases migration history"
+    dependsOn("flywayRepairRiskMaster", "flywayRepairRiskTransaction")
+}
+
+// リスクマスターデータベースのクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRiskMaster") {
+    setGroup("flyway")
+    description = "Clean risk master database"
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+}
+
+// リスクトランザクションデータベースのクリーンタスク
+tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRiskTransaction") {
+    setGroup("flyway")
+    description = "Clean risk transaction database"
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+}
+
+// リスクデータベースのクリーンを実行するタスク
+tasks.register("cleanRiskDatabases") {
+    setGroup("flyway")
+    description = "Clean all risk databases"
+    dependsOn("flywayCleanRiskMaster", "flywayCleanRiskTransaction")
 } 
