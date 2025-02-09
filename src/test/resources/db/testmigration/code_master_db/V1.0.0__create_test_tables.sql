@@ -1,4 +1,5 @@
-CREATE TABLE M_CODE (
+-- M_Code table for testing
+CREATE TABLE IF NOT EXISTS M_CODE (
     code_id BIGINT NOT NULL AUTO_INCREMENT,
     code_category VARCHAR(50) NOT NULL,
     code VARCHAR(50) NOT NULL,

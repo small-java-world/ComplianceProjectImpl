@@ -384,7 +384,7 @@ tasks.register("dropAllDatabases") {
                     "root",
                     "-proot",
                     "-e",
-                    "DROP DATABASE IF EXISTS $dbName;"
+                    "SET FOREIGN_KEY_CHECKS=0; DROP DATABASE IF EXISTS $dbName; SET FOREIGN_KEY_CHECKS=1;"
                 )
             }
         }
@@ -596,10 +596,9 @@ fun loadJdbcDriver(): URLClassLoader {
 // テスト用データベースのクリーンタスク
 tasks.register("cleanTestDatabases") {
     group = "Database"
-    description = "Clean all test databases"
-    
+    description = "Clean test databases"
     doLast {
-        val testDatabases = listOf(
+        val dbNames = listOf(
             "code_master_db_test",
             "organization_db_test",
             "reference_data_db_test",
@@ -613,26 +612,15 @@ tasks.register("cleanTestDatabases") {
             "compliance_db_test"
         )
 
-        // JDBCドライバーをロード
-        val classLoader = loadJdbcDriver()
-        Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
-
-        testDatabases.forEach { dbName ->
-            try {
-                val connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false",
-                    "root",
-                    "root"
-                )
-                connection.use { conn ->
-                    conn.createStatement().use { stmt ->
-                        stmt.execute("DROP DATABASE IF EXISTS $dbName")
-                        println("✓ Dropped database: $dbName")
-                    }
-                }
-            } catch (e: Exception) {
-                throw GradleException("Failed to drop database $dbName: ${e.message}")
+        dbNames.forEach { dbName ->
+            flyway {
+                url = "jdbc:mysql://localhost:3307/$dbName?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+                user = "root"
+                password = "root"
+                locations = arrayOf("filesystem:src/test/resources/db/testmigration/$dbName")
+                cleanDisabled = false
             }
+            tasks.findByName("flywayClean")?.actions?.forEach { it.execute(tasks.findByName("flywayClean")!!) }
         }
     }
 }
@@ -640,9 +628,9 @@ tasks.register("cleanTestDatabases") {
 // テスト用データベースの作成タスク
 tasks.register("createTestDatabases") {
     group = "Database"
-    description = "Creates all test databases"
+    description = "Create test databases"
     doLast {
-        val testDatabases = listOf(
+        val dbNames = listOf(
             "code_master_db_test",
             "organization_db_test",
             "reference_data_db_test",
@@ -656,26 +644,17 @@ tasks.register("createTestDatabases") {
             "compliance_db_test"
         )
 
-        // JDBCドライバーをロード
-        val classLoader = loadJdbcDriver()
-        Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
-
-        testDatabases.forEach { dbName ->
-            try {
-                val connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false",
-                    "root",
-                    "root"
-                )
-                connection.use { conn ->
-                    conn.createStatement().use { stmt ->
-                        stmt.execute("CREATE DATABASE IF NOT EXISTS $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-                        println("✓ Created database: $dbName")
-                    }
-                }
-            } catch (e: Exception) {
-                throw GradleException("Failed to create database $dbName: ${e.message}")
+        dbNames.forEach { dbName ->
+            flyway {
+                url = "jdbc:mysql://localhost:3307/$dbName?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+                user = "root"
+                password = "root"
+                locations = arrayOf("filesystem:src/test/resources/db/testmigration/${dbName.replace("_test", "")}")
+                baselineOnMigrate = true
+                outOfOrder = false
+                validateOnMigrate = true
             }
+            tasks.findByName("flywayMigrate")?.actions?.forEach { it.execute(tasks.findByName("flywayMigrate")!!) }
         }
     }
 }
@@ -720,7 +699,7 @@ testDatabases.forEach { testDb ->
         url = "jdbc:mysql://localhost:3307/$testDb?allowPublicKeyRetrieval=true&useSSL=false"
         user = "root"
         password = "root"
-        locations = arrayOf("filesystem:src/main/resources/db/migration/${dbName}")
+        locations = arrayOf("filesystem:src/test/resources/db/testmigration/${dbName}")
         validateOnMigrate = true
         outOfOrder = false
         baselineOnMigrate = true

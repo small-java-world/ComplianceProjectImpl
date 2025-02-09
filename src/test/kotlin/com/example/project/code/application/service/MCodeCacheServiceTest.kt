@@ -15,36 +15,40 @@ class MCodeCacheServiceTest(
 
     test("loadAll should load all records into cache") {
         // loadAllはPostConstructで自動実行される
-        val adminRole = mCodeCacheService.getEntry("ROLE", "ADMIN")
-        adminRole shouldNotBe null
-        adminRole?.codeName shouldBe "管理者"
-        adminRole?.extension3 shouldBe "true" // canInternalAudit
+        val planningStage = mCodeCacheService.getEntry("AUDIT_STAGE", "PLANNING")
+        planningStage shouldNotBe null
+        planningStage?.name shouldBe "計画"
+        planningStage?.description shouldBe "監査計画段階"
+        planningStage?.isActive shouldBe true
     }
 
-    test("getByDivision should return records for specific category and division") {
-        val isoFrameworks = mCodeCacheService.getByDivision("COMPLIANCE_FW_TYPE", "ISO27001")
-        isoFrameworks.size shouldBe 2
+    test("getByName should return records for specific category and name") {
+        val executionStages = mCodeCacheService.getByName("AUDIT_STAGE", "実施")
+        executionStages.size shouldBe 1
         
-        val iso27001_2022 = isoFrameworks.find { it.code == "ISO27001_2022" }
-        iso27001_2022 shouldNotBe null
-        iso27001_2022?.codeName shouldBe "ISO27001:2022"
+        val executionStage = executionStages.first()
+        executionStage.code shouldBe "EXECUTION"
+        executionStage.name shouldBe "実施"
+        executionStage.description shouldBe "監査実施段階"
     }
 
     test("reloadCategory should reload specific category") {
         mCodeCacheService.reloadCategory("AUDIT_STAGE")
         
-        val internalAudit = mCodeCacheService.getEntry("AUDIT_STAGE", "STAGE_INTERNAL")
-        internalAudit shouldNotBe null
-        internalAudit?.codeName shouldBe "内部監査"
+        val reportingStage = mCodeCacheService.getEntry("AUDIT_STAGE", "REPORTING")
+        reportingStage shouldNotBe null
+        reportingStage?.name shouldBe "報告"
+        reportingStage?.description shouldBe "監査報告段階"
     }
 
     test("partialReload should update cache with recent changes") {
         val pastTime = LocalDateTime.now().minusYears(1)
         mCodeCacheService.partialReload(pastTime)
         
-        val userRole = mCodeCacheService.getEntry("ROLE", "USER")
-        userRole shouldNotBe null
-        userRole?.codeName shouldBe "一般ユーザー"
-        userRole?.extension3 shouldBe "false" // canInternalAudit
+        val followUpStage = mCodeCacheService.getEntry("AUDIT_STAGE", "FOLLOW_UP")
+        followUpStage shouldNotBe null
+        followUpStage?.name shouldBe "フォローアップ"
+        followUpStage?.description shouldBe "監査フォローアップ段階"
+        followUpStage?.isActive shouldBe true
     }
 }) 

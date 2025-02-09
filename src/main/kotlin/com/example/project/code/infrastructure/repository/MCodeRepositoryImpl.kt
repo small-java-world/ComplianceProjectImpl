@@ -17,21 +17,13 @@ class MCodeRepositoryImpl(
 ) : MCodeRepository {
 
     private val M_CODE: Table<Record> = DSL.table("M_CODE")
+    private val CODE_ID: Field<Long> = DSL.field("code_id", Long::class.java)
     private val CODE_CATEGORY: Field<String> = DSL.field("code_category", String::class.java)
     private val CODE: Field<String> = DSL.field("code", String::class.java)
-    private val CODE_DIVISION: Field<String> = DSL.field("code_division", String::class.java)
-    private val CODE_NAME: Field<String> = DSL.field("code_name", String::class.java)
-    private val CODE_SHORT_NAME: Field<String> = DSL.field("code_short_name", String::class.java)
-    private val EXTENSION1: Field<String> = DSL.field("extension1", String::class.java)
-    private val EXTENSION2: Field<String> = DSL.field("extension2", String::class.java)
-    private val EXTENSION3: Field<String> = DSL.field("extension3", String::class.java)
-    private val EXTENSION4: Field<String> = DSL.field("extension4", String::class.java)
-    private val EXTENSION5: Field<String> = DSL.field("extension5", String::class.java)
-    private val EXTENSION6: Field<String> = DSL.field("extension6", String::class.java)
-    private val EXTENSION7: Field<String> = DSL.field("extension7", String::class.java)
-    private val EXTENSION8: Field<String> = DSL.field("extension8", String::class.java)
-    private val EXTENSION9: Field<String> = DSL.field("extension9", String::class.java)
-    private val EXTENSION10: Field<String> = DSL.field("extension10", String::class.java)
+    private val NAME: Field<String> = DSL.field("name", String::class.java)
+    private val DESCRIPTION: Field<String> = DSL.field("description", String::class.java)
+    private val DISPLAY_ORDER: Field<Int> = DSL.field("display_order", Int::class.java)
+    private val IS_ACTIVE: Field<Boolean> = DSL.field("is_active", Boolean::class.java)
     private val CREATED_AT: Field<Timestamp> = DSL.field("created_at", Timestamp::class.java)
     private val UPDATED_AT: Field<Timestamp> = DSL.field("updated_at", Timestamp::class.java)
 
@@ -63,21 +55,13 @@ class MCodeRepositoryImpl(
 
     private fun map(record: Record): MCode {
         return MCode(
+            codeId = record.get(CODE_ID),
             codeCategory = record.get(CODE_CATEGORY),
             code = record.get(CODE),
-            codeDivision = record.get(CODE_DIVISION),
-            codeName = record.get(CODE_NAME),
-            codeShortName = record.get(CODE_SHORT_NAME),
-            extension1 = record.get(EXTENSION1),
-            extension2 = record.get(EXTENSION2),
-            extension3 = record.get(EXTENSION3),
-            extension4 = record.get(EXTENSION4),
-            extension5 = record.get(EXTENSION5),
-            extension6 = record.get(EXTENSION6),
-            extension7 = record.get(EXTENSION7),
-            extension8 = record.get(EXTENSION8),
-            extension9 = record.get(EXTENSION9),
-            extension10 = record.get(EXTENSION10),
+            name = record.get(NAME),
+            description = record.get(DESCRIPTION),
+            displayOrder = record.get(DISPLAY_ORDER),
+            isActive = record.get(IS_ACTIVE),
             createdAt = record.get(CREATED_AT).toLocalDateTime(),
             updatedAt = record.get(UPDATED_AT).toLocalDateTime()
         )

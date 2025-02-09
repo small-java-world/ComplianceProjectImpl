@@ -32,9 +32,9 @@ class MCodeRepositoryImplTest(
             
             val adminRole = results.find { it.codeCategory == "ROLE" && it.code == "ADMIN" }
             adminRole shouldNotBe null
-            adminRole?.codeName shouldBe "管理者"
-            adminRole?.extension1 shouldBe "ALL"
-            adminRole?.extension3 shouldBe "true"
+            adminRole?.name shouldBe "管理者"
+            adminRole?.description shouldBe "システム管理者権限を持つユーザー"
+            adminRole?.isActive shouldBe true
         }
 
         test("findByCodeCategory should return records for specific category") {
@@ -46,8 +46,8 @@ class MCodeRepositoryImplTest(
             
             val iso27001_2022 = results.find { it.code == "ISO27001_2022" }
             iso27001_2022 shouldNotBe null
-            iso27001_2022?.codeName shouldBe "ISO27001:2022"
-            iso27001_2022?.extension1 shouldBe "2022"
+            iso27001_2022?.name shouldBe "ISO27001:2022"
+            iso27001_2022?.description shouldBe "ISO/IEC 27001:2022規格"
         }
 
         test("findByUpdatedAtAfter should return records updated after specified time") {
@@ -69,45 +69,41 @@ class MCodeRepositoryImplTest(
 
     private fun setupAuditStageData() {
         jdbcTemplate.update("""
-            INSERT INTO M_CODE (code_category, code, code_division, code_name, code_short_name, 
-                              extension1, extension2, extension3, extension4, extension5)
+            INSERT INTO M_CODE (code_category, code, name, description, display_order, is_active)
             VALUES 
-            ('AUDIT_STAGE', 'STAGE_INTERNAL', 'INTERNAL', '内部監査', 'Internal Audit', '1', '0', '1', NULL, NULL),
-            ('AUDIT_STAGE', 'STAGE1_DOCUMENT', 'ISO27001', '文書審査', 'Document Review', '2', '1', '2', NULL, NULL),
-            ('AUDIT_STAGE', 'STAGE2_ONSITE', 'ISO27001', '実地審査', 'Onsite Audit', '3', '2', '3', NULL, NULL),
-            ('AUDIT_STAGE', 'SURVEILLANCE1', 'ISO27001', 'サーベイランス1', 'Surveillance 1', '4', '3', '4', NULL, NULL),
-            ('AUDIT_STAGE', 'RENEWAL', 'ISO27001', '更新審査', 'Renewal Audit', '5', '4', '5', NULL, NULL),
-            ('AUDIT_STAGE', 'CUSTOM_STAGE1', 'TEST', 'カスタムステージ1', 'CustomStage1', '6', '5', '6', NULL, NULL),
-            ('AUDIT_STAGE', 'CUSTOM_STAGE2', 'TEST', 'カスタムステージ2', 'CustomStage2', '7', '6', '7', NULL, NULL)
+            ('AUDIT_STAGE', 'STAGE_INTERNAL', '内部監査', '組織内で実施する監査', 1, true),
+            ('AUDIT_STAGE', 'STAGE1_DOCUMENT', '文書審査', 'ISO27001認証の文書審査フェーズ', 2, true),
+            ('AUDIT_STAGE', 'STAGE2_ONSITE', '実地審査', 'ISO27001認証の実地審査フェーズ', 3, true),
+            ('AUDIT_STAGE', 'SURVEILLANCE1', 'サーベイランス1', 'ISO27001認証の維持審査1', 4, true),
+            ('AUDIT_STAGE', 'RENEWAL', '更新審査', 'ISO27001認証の更新審査', 5, true),
+            ('AUDIT_STAGE', 'CUSTOM_STAGE1', 'カスタムステージ1', 'カスタム監査ステージ1', 6, true),
+            ('AUDIT_STAGE', 'CUSTOM_STAGE2', 'カスタムステージ2', 'カスタム監査ステージ2', 7, true)
         """)
     }
 
     private fun setupRoleData() {
         jdbcTemplate.update("""
-            INSERT INTO M_CODE (code_category, code, code_division, code_name, code_short_name,
-                              extension1, extension2, extension3, extension4, extension5)
+            INSERT INTO M_CODE (code_category, code, name, description, display_order, is_active)
             VALUES 
-            ('ROLE', 'ADMIN', 'SYSTEM', '管理者', 'Admin', 'ALL', NULL, 'true', 'true', 'true'),
-            ('ROLE', 'USER', 'SYSTEM', '一般ユーザー', 'User', 'LIMITED', NULL, 'false', 'false', 'false')
+            ('ROLE', 'ADMIN', '管理者', 'システム管理者権限を持つユーザー', 1, true),
+            ('ROLE', 'USER', '一般ユーザー', '一般的なユーザー権限', 2, true)
         """)
     }
 
     private fun setupComplianceFWTypeData() {
         jdbcTemplate.update("""
-            INSERT INTO M_CODE (code_category, code, code_division, code_name, code_short_name,
-                              extension1, extension2, extension3, extension4, extension5)
+            INSERT INTO M_CODE (code_category, code, name, description, display_order, is_active)
             VALUES 
-            ('COMPLIANCE_FW_TYPE', 'ISO27001_2022', 'ISO27001', 'ISO27001:2022', 'ISO27001:2022', '2022', NULL, NULL, NULL, NULL),
-            ('COMPLIANCE_FW_TYPE', 'ISO27001_2013', 'ISO27001', 'ISO27001:2013', 'ISO27001:2013', '2013', NULL, NULL, NULL, NULL)
+            ('COMPLIANCE_FW_TYPE', 'ISO27001_2022', 'ISO27001:2022', 'ISO/IEC 27001:2022規格', 1, true),
+            ('COMPLIANCE_FW_TYPE', 'ISO27001_2013', 'ISO27001:2013', 'ISO/IEC 27001:2013規格', 2, true)
         """)
     }
 
     private fun setupIncidentTypeData() {
         jdbcTemplate.update("""
-            INSERT INTO M_CODE (code_category, code, code_division, code_name, code_short_name,
-                              extension1, extension2, extension3, extension4, extension5)
+            INSERT INTO M_CODE (code_category, code, name, description, display_order, is_active)
             VALUES 
-            ('INCIDENT_TYPE', 'SYSTEM_OUTAGE', 'SYSTEM', 'システム障害', 'SystemOutage', 'HIGH', NULL, NULL, NULL, NULL)
+            ('INCIDENT_TYPE', 'SYSTEM_OUTAGE', 'システム障害', 'システムの重大な障害', 1, true)
         """)
     }
 } 

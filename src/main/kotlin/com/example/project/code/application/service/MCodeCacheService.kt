@@ -71,10 +71,10 @@ class MCodeCacheService(
     fun getEntry(category: String, code: String): MCode? =
         lock.read { cache[MCodeKey(category, code)] }
 
-    fun getByDivision(category: String, division: String): List<MCode> =
+    fun getByName(category: String, name: String): List<MCode> =
         lock.read { 
             cache.values
-                .filter { it.codeCategory == category && it.codeDivision == division }
+                .filter { it.codeCategory == category && it.name == name }
                 .toList()
         }
 } 
