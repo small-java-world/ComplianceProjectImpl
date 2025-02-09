@@ -19,7 +19,9 @@ spring:
 
   flyway:
     enabled: true
-    locations: classpath:db/testmigration/code_master_db
+    locations: 
+      - classpath:db/migration/code_master_db    # 本番のマイグレーション
+      - classpath:db/testmigration/code_master_db  # テストデータの投入
     clean-disabled: false
     clean-on-validation-error: true
     user: root

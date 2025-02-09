@@ -100,45 +100,22 @@ fun loadEnvVariables(): Map<String, String> {
 
 val envVariables = loadEnvVariables()
 jooq {
-    version.set("3.19.1")
     configurations {
         create("main") {
             jooqConfiguration.apply {
                 jdbc.apply {
                     driver = "com.mysql.cj.jdbc.Driver"
-                    url = "jdbc:mysql://localhost:3307/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true"
-                    user = "compliance_user"
-                    password = "compliance_pass"
+                    url = "jdbc:mysql://localhost:3307/code_master_db_test"
+                    user = "root"
+                    password = "root"
                 }
                 generator.apply {
-                    name = "org.jooq.codegen.KotlinGenerator"
+                    name = "org.jooq.codegen.DefaultGenerator"
                     database.apply {
                         name = "org.jooq.meta.mysql.MySQLDatabase"
-                        inputSchema = "compliance_management_system"
-                        properties = listOf(
-                            org.jooq.meta.jaxb.Property().apply {
-                                key = "characterEncoding"
-                                value = "UTF-8"
-                            },
-                            org.jooq.meta.jaxb.Property().apply {
-                                key = "useUnicode"
-                                value = "true"
-                            }
-                        )
-                        forcedTypes.addAll(
-                            listOf(
-                                org.jooq.meta.jaxb.ForcedType().apply {
-                                    name = "java.time.LocalDate"
-                                    includeExpression = ".*\\..*_date"
-                                    includeTypes = "DATE"
-                                },
-                                org.jooq.meta.jaxb.ForcedType().apply {
-                                    name = "java.time.LocalDateTime"
-                                    includeExpression = ".*\\..*_at"
-                                    includeTypes = "TIMESTAMP"
-                                }
-                            )
-                        )
+                        inputSchema = "code_master_db_test"
+                        includes = ".*"
+                        excludes = ""
                     }
                     generate.apply {
                         isDeprecated = false
@@ -147,7 +124,7 @@ jooq {
                         isFluentSetters = true
                     }
                     target.apply {
-                        packageName = "com.example.project.infrastructure.jooq"
+                        packageName = "com.example.project.jooq"
                         directory = "build/generated-src/jooq/main"
                     }
                     strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
@@ -231,7 +208,7 @@ tasks.register("testDatabaseConnection") {
         Thread.currentThread().contextClassLoader = classLoader
 
         val driver = "com.mysql.cj.jdbc.Driver"
-        val url = "jdbc:mysql://localhost:3307/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+        val url = "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
         val user = "compliance_user"
         val password = "compliance_pass"
 
@@ -278,7 +255,7 @@ val databases = listOf(
 databases.forEach { dbName ->
     // マイグレーションタスク
     tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrate${dbName.split('_').joinToString("") { it.capitalize() }}") {
-        url = "jdbc:mysql://localhost:3307/${dbName}?allowPublicKeyRetrieval=true&useSSL=false"
+        url = "jdbc:mysql://localhost:3306/${dbName}?allowPublicKeyRetrieval=true&useSSL=false"
         user = "root"
         password = "root"
         driver = "com.mysql.cj.jdbc.Driver"
@@ -294,7 +271,7 @@ databases.forEach { dbName ->
 
     // クリーンタスク
     tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayClean${dbName.split('_').joinToString("") { it.capitalize() }}") {
-        url = "jdbc:mysql://localhost:3307/${dbName}?allowPublicKeyRetrieval=true&useSSL=false"
+        url = "jdbc:mysql://localhost:3306/${dbName}?allowPublicKeyRetrieval=true&useSSL=false"
         user = "root"
         password = "root"
         driver = "com.mysql.cj.jdbc.Driver"
@@ -403,7 +380,7 @@ tasks.register("migrateRiskDatabases") {
 
 tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairDocument") {
     driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://localhost:3307/document_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    url = "jdbc:mysql://localhost:3306/document_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "compliance_user"
     password = "compliance_pass"
     locations = arrayOf("filesystem:src/main/resources/db/migration/document_db")
@@ -427,7 +404,7 @@ tasks.register("createRiskDatabases") {
         Thread.currentThread().contextClassLoader = classLoader
 
         val driver = "com.mysql.cj.jdbc.Driver"
-        val baseUrl = "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+        val baseUrl = "jdbc:mysql://localhost:3306/?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
         val user = "root"
         val password = "root"
 
@@ -455,7 +432,7 @@ tasks.register("createRiskDatabases") {
 
 // リスクマスターデータベース用のFlywayタスク
 tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskMaster") {
-    url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    url = "jdbc:mysql://localhost:3306/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
     driver = "com.mysql.cj.jdbc.Driver"
@@ -469,7 +446,7 @@ tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskMas
 
 // リスクトランザクションデータベース用のFlywayタスク
 tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskTransaction") {
-    url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    url = "jdbc:mysql://localhost:3306/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
     driver = "com.mysql.cj.jdbc.Driver"
@@ -485,7 +462,7 @@ tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskTra
 tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskMaster") {
     description = "Repair risk master database migration history"
     driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    url = "jdbc:mysql://localhost:3306/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
     locations = arrayOf("filesystem:src/main/resources/db/migration/risk_master_db")
@@ -495,7 +472,7 @@ tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskMaste
 tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskTransaction") {
     description = "Repair risk transaction database migration history"
     driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    url = "jdbc:mysql://localhost:3306/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
     locations = arrayOf("filesystem:src/main/resources/db/migration/risk_transaction_db")
@@ -511,7 +488,7 @@ tasks.register("repairRiskDatabases") {
 // リスクマスターデータベースのクリーンタスク
 tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRiskMaster") {
     driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    url = "jdbc:mysql://localhost:3306/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "compliance_user"
     password = "compliance_pass"
 }
@@ -519,7 +496,7 @@ tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRiskMaster"
 // リスクトランザクションデータベースのクリーンタスク
 tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRiskTransaction") {
     driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    url = "jdbc:mysql://localhost:3306/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "compliance_user"
     password = "compliance_pass"
 }
@@ -542,7 +519,7 @@ tasks.register("showDatabaseTables") {
         Thread.currentThread().contextClassLoader = classLoader
 
         val driver = "com.mysql.cj.jdbc.Driver"
-        val baseUrl = "jdbc:mysql://localhost:3307"
+        val baseUrl = "jdbc:mysql://localhost:3306"
         val user = "compliance_user"
         val password = "compliance_pass"
 
@@ -629,33 +606,26 @@ tasks.register("cleanTestDatabases") {
 tasks.register("createTestDatabases") {
     group = "Database"
     description = "Create test databases"
-    doLast {
-        val dbNames = listOf(
-            "code_master_db_test",
-            "organization_db_test",
-            "reference_data_db_test",
-            "risk_master_db_test",
-            "risk_transaction_db_test",
-            "asset_db_test",
-            "framework_db_test",
-            "document_db_test",
-            "training_db_test",
-            "audit_db_test",
-            "compliance_db_test"
-        )
 
-        dbNames.forEach { dbName ->
-            flyway {
-                url = "jdbc:mysql://localhost:3307/$dbName?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
-                user = "root"
-                password = "root"
-                locations = arrayOf("filesystem:src/test/resources/db/testmigration/${dbName.replace("_test", "")}")
-                baselineOnMigrate = true
-                outOfOrder = false
-                validateOnMigrate = true
-            }
-            tasks.findByName("flywayMigrate")?.actions?.forEach { it.execute(tasks.findByName("flywayMigrate")!!) }
+    doLast {
+        // コードマスターDBのマイグレーション
+        flyway {
+            url = "jdbc:mysql://localhost:3307/code_master_db_test"
+            user = "root"
+            password = "root"
+            locations = arrayOf(
+                "classpath:db/migration/code_master_db",  // 本番のマイグレーション
+                "classpath:db/testmigration/code_master_db"  // テストデータ
+            )
+            cleanDisabled = false
+            cleanOnValidationError = true
+            baselineOnMigrate = true
+            outOfOrder = false
+            validateOnMigrate = true
+            mixed = true
         }
+        tasks.getByName("flywayClean").actions.forEach { it.execute(tasks.getByName("flywayClean")) }
+        tasks.getByName("flywayMigrate").actions.forEach { it.execute(tasks.getByName("flywayMigrate")) }
     }
 }
 
@@ -668,7 +638,7 @@ tasks.test {
 // Flyway設定を更新
 flyway {
     driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://localhost:3307/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false"
+    url = "jdbc:mysql://localhost:3306/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false"
     user = "root"
     password = "root"
     validateOnMigrate = true
@@ -677,43 +647,38 @@ flyway {
     cleanDisabled = false
 }
 
-// テストデータベースごとのマイグレーションタスクを作成
-val testDatabases = listOf(
-    "code_master_db_test",
-    "organization_db_test",
-    "reference_data_db_test",
-    "risk_master_db_test",
-    "risk_transaction_db_test",
-    "asset_db_test",
-    "framework_db_test",
-    "document_db_test",
-    "training_db_test",
-    "audit_db_test",
-    "compliance_db_test"
-)
-
-testDatabases.forEach { testDb ->
-    val dbName = testDb.replace("_test", "")
-    tasks.create<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrate${testDb.replace("_", "").replaceFirstChar { it.uppercase() }}") {
-        driver = "com.mysql.cj.jdbc.Driver"
-        url = "jdbc:mysql://localhost:3307/$testDb?allowPublicKeyRetrieval=true&useSSL=false"
-        user = "root"
-        password = "root"
-        locations = arrayOf("filesystem:src/test/resources/db/testmigration/${dbName}")
-        validateOnMigrate = true
-        outOfOrder = false
-        baselineOnMigrate = true
-        cleanDisabled = false
-    }
-}
-
-// マイグレーションタスクの依存関係を設定
+// テスト用データベースのマイグレーションタスク
 tasks.register("migrateTestDatabases") {
     group = "Database"
     description = "Migrates all test databases"
-    dependsOn(testDatabases.map { testDb ->
-        "flywayMigrate${testDb.replace("_", "").replaceFirstChar { it.uppercase() }}"
-    })
+    
+    doLast {
+        // 本番のマイグレーションを実行
+        flyway {
+            url = "jdbc:mysql://localhost:3307/code_master_db_test?allowPublicKeyRetrieval=true&useSSL=false"
+            user = "root"
+            password = "root"
+            locations = arrayOf("classpath:db/migration/code_master_db")
+            validateOnMigrate = true
+            outOfOrder = false
+            baselineOnMigrate = true
+            cleanDisabled = false
+        }
+        tasks.findByName("flywayMigrate")?.actions?.forEach { it.execute(tasks.findByName("flywayMigrate")!!) }
+
+        // テストデータの投入
+        flyway {
+            url = "jdbc:mysql://localhost:3307/code_master_db_test?allowPublicKeyRetrieval=true&useSSL=false"
+            user = "root"
+            password = "root"
+            locations = arrayOf("classpath:db/testmigration/code_master_db")
+            validateOnMigrate = true
+            outOfOrder = false
+            baselineOnMigrate = true
+            cleanDisabled = false
+        }
+        tasks.findByName("flywayMigrate")?.actions?.forEach { it.execute(tasks.findByName("flywayMigrate")!!) }
+    }
 }
 
 // テスト用データベースの再作成タスク

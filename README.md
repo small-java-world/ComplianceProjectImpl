@@ -369,3 +369,107 @@ CREATE DATABASE training_db;
 - 本番環境では、`flywayClean`コマンドを使用しないでください。
 - マイグレーションとデータ投入は、必ずバックアップを取得してから実行してください。
 - エラーが発生した場合は、ログを確認し、必要に応じて個別のコマンドを実行してください。
+
+## テストの実行方法
+
+### テスト環境のセットアップ
+
+#### 1. テスト用データベースの準備
+```bash
+# テスト用データベースの作成
+./gradlew createTestDatabases
+
+# テスト用データベースの接続確認
+./gradlew verifyTestDbConnections
+```
+
+#### 2. テストデータのセットアップ
+```bash
+# テストデータベースのクリーンアップ
+./gradlew cleanTestDatabases
+
+# テストデータベースの再作成とマイグレーション
+./gradlew recreateTestDatabases
+```
+
+### テストの実行
+
+#### 全テストの実行
+```bash
+./gradlew test
+```
+
+#### 特定のテストの実行
+```bash
+# 特定のテストクラスを実行
+./gradlew test --tests "com.example.project.code.application.service.MCodeCacheServiceTest"
+
+# 特定のテストメソッドを実行
+./gradlew test --tests "com.example.project.code.application.service.MCodeCacheServiceTest.loadAll should load all records into cache"
+```
+
+### テスト結果の確認
+
+テスト実行後、以下の場所でテスト結果を確認できます：
+- テストレポート: `build/reports/tests/test/index.html`
+- カバレッジレポート: `build/reports/jacoco/test/html/index.html`
+
+### テストデータベース構成
+
+テスト用に以下のデータベースが用意されています：
+- `code_master_db_test`: コードマスタ管理テスト用DB
+- `organization_db_test`: 組織管理テスト用DB
+- `reference_data_db_test`: 参照データ管理テスト用DB
+- `risk_master_db_test`: リスクマスタテスト用DB
+- `risk_transaction_db_test`: リスクトランザクションテスト用DB
+- `asset_db_test`: アセット管理テスト用DB
+- `framework_db_test`: フレームワーク管理テスト用DB
+- `document_db_test`: 文書管理テスト用DB
+- `training_db_test`: 教育管理テスト用DB
+- `audit_db_test`: 監査管理テスト用DB
+- `compliance_db_test`: コンプライアンス管理テスト用DB
+
+### テスト実行時の注意事項
+
+./gradlew clean    
+1. データベース準備
+   - テスト実行前に `recreateTestDatabases` タスクを実行
+   - 全データベースが正しく作成されていることを確認
+
+2. テストデータ管理
+   - テストケースごとに必要最小限のデータのみを準備
+   - `@BeforeEach` でデータセットアップ
+   - `@AfterEach` でクリーンアップは不要（トランザクションロールバック）
+
+3. トランザクション管理
+   - `@Transactional` アノテーションを使用
+   - テストメソッド終了時に自動ロールバック
+   - 必要に応じて `@Rollback(false)` で制御
+
+4. 並列実行への対応
+   - テストメソッドは独立して実行可能に設計
+   - 共有リソースへのアクセスを最小限に
+
+### トラブルシューティング
+
+1. テストDBへの接続エラー
+   ```bash
+   # 接続確認
+   ./gradlew verifyTestDbConnections
+   ```
+
+2. マイグレーションエラー
+   ```bash
+   # データベースのクリーンアップと再作成
+   ./gradlew recreateTestDatabases
+   ```
+
+3. テストの失敗
+   - テストレポートで詳細を確認
+   - 必要に応じてデバッグログを有効化
+   ```yaml
+   # application-test.yml
+   logging:
+     level:
+       com.example.project: DEBUG
+   ```
