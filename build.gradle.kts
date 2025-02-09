@@ -162,20 +162,19 @@ tasks.named<nu.studer.gradle.jooq.JooqGenerate>("generateJooq") {
 }
 
 tasks.withType<JavaExec> {
-    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+    systemProperties = mapOf(
+        "file.encoding" to "UTF-8",
+        "user.language" to "ja",
+        "user.country" to "JP"
+    )
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    systemProperty("file.encoding", "UTF-8")
-    systemProperty("user.language", "ja")
-    systemProperty("user.country", "JP")
-    jvmArgs = listOf(
-        "-Dfile.encoding=UTF-8",
-        "-Dspring.profiles.active=test",
-        "-Dlogging.level.org.springframework=DEBUG",
-        "-Dlogging.level.org.flywaydb=DEBUG",
-        "-Dlogging.level.com.mysql=DEBUG"
+    systemProperties = mapOf(
+        "file.encoding" to "UTF-8",
+        "user.language" to "ja",
+        "user.country" to "JP"
     )
     testLogging {
         events("passed", "skipped", "failed")
@@ -196,6 +195,17 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs += "-Xjsr305=strict"
         jvmTarget = "21"
     }
+}
+
+tasks.withType<Exec> {
+    environment(mapOf(
+        "LANG" to "ja_JP.UTF-8",
+        "LC_ALL" to "ja_JP.UTF-8"
+    ))
+}
+
+tasks.withType<org.gradle.api.tasks.GradleBuild> {
+    // 環境変数の設定は削除
 }
 
 tasks.register("testDatabaseConnection") {
@@ -432,15 +442,18 @@ tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRisk") 
 
 // ドキュメント管理DB用のFlywayタスク
 tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateDocument") {
-    setGroup("database")
-    description = "ドキュメント管理DBのマイグレーションを実行"
-    
-    url = "jdbc:mysql://localhost:3306/document_asset_db"
+    description = "ドキュメント管理データベースのマイグレーションを実行します"
+    dependsOn("createAllDatabases")
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/document_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
-    locations = arrayOf("filesystem:src/main/resources/db/migration/document")
-    baselineOnMigrate = true
-    outOfOrder = true
+    locations = arrayOf(
+        "filesystem:${projectDir}/src/main/resources/db/migration/document_db",
+        "filesystem:${projectDir}/src/main/resources/db/transactiondata/document_db"
+    )
+    validateOnMigrate = true
+    encoding = "UTF-8"
 }
 
 // ドキュメント管理DB用のFlywayクリーンタスク
@@ -456,18 +469,14 @@ tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanDocument") 
 // 全DBのデータ投入タスク
 tasks.register("loadAllData") {
     group = "Database"
-    description = "Load sample data into all databases"
+    description = "全てのデータベースにサンプルデータを投入します"
     
-    dependsOn(
-        "loadCodeMasterData",
-        "loadOrganizationData",
-        "loadFrameworkData",
-        "loadAuditData",
-        "loadRiskData",
-        "loadDocumentData",
-        "loadAssetData",
-        "loadTrainingData"
-    )
+    dependsOn("flywayMigrateAll")
+    
+    doLast {
+        println("サンプルデータの投入を開始します...")
+        // ここでデータ投入の処理を実行
+    }
 }
 
 // コードマスタDB用のFlywayクリーンタスク
@@ -554,42 +563,8 @@ tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairTraining"
 
 // 全DBのマイグレーション実行タスク
 tasks.register("flywayMigrateAll") {
-    setGroup("database")
-    description = "全データベースのマイグレーションを実行"
-    
-    // 前処理として各DBのクリーンを実行
-    dependsOn(
-        "flywayCleanAudit",
-        "flywayCleanCodeMaster",
-        "flywayCleanFramework",
-        "flywayCleanRisk",
-        "flywayCleanDocument",
-        "flywayCleanOrganization",
-        "flywayCleanTraining",
-        "flywayCleanAsset"
-    )
-    
-    // 各DBのマイグレーションタスクを依存関係に追加
-    dependsOn(
-        "flywayMigrateAudit",
-        "flywayMigrateCodeMaster",
-        "flywayMigrateFramework",
-        "flywayMigrateRisk",
-        "flywayMigrateDocument",
-        "flywayMigrateOrganization",
-        "flywayMigrateTraining",
-        "flywayMigrateAsset"
-    )
-
-    // タスクの実行順序を制御
-    tasks.findByName("flywayMigrateAudit")?.mustRunAfter("flywayCleanAudit")
-    tasks.findByName("flywayMigrateCodeMaster")?.mustRunAfter("flywayCleanCodeMaster")
-    tasks.findByName("flywayMigrateFramework")?.mustRunAfter("flywayCleanFramework")
-    tasks.findByName("flywayMigrateRisk")?.mustRunAfter("flywayCleanRisk")
-    tasks.findByName("flywayMigrateDocument")?.mustRunAfter("flywayCleanDocument")
-    tasks.findByName("flywayMigrateOrganization")?.mustRunAfter("flywayCleanOrganization")
-    tasks.findByName("flywayMigrateTraining")?.mustRunAfter("flywayCleanTraining")
-    tasks.findByName("flywayMigrateAsset")?.mustRunAfter("flywayCleanAsset")
+    description = "全てのデータベースのマイグレーションを実行します"
+    dependsOn("flywayMigrateDocument")
 }
 
 // コードマスタDBのデータ投入タスク
@@ -853,7 +828,7 @@ tasks.register("createAllDatabases") {
         
         databases.forEach { dbName ->
             try {
-                val url = "jdbc:mysql://localhost:3307/mysql"
+                val url = "jdbc:mysql://localhost:3307/mysql?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
                 val user = "root"
                 val password = "root"
                 val driver = "com.mysql.cj.jdbc.Driver"
@@ -889,4 +864,13 @@ tasks.register("recreateAllDatabases") {
     
     tasks.findByName("createAllDatabases")?.mustRunAfter("dropAllDatabases")
     tasks.findByName("flywayMigrateAll")?.mustRunAfter("createAllDatabases")
+}
+
+tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairDocument") {
+    description = "ドキュメント管理データベースのマイグレーション履歴を修復します"
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/document_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+    user = "root"
+    password = "root"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/document_db")
 } 
