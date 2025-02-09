@@ -328,7 +328,14 @@ tasks.register("createTestDatabases") {
             "code_master_db_test",
             "organization_db_test",
             "reference_data_db_test",
-            // ... 他のテストDB
+            "risk_master_db_test",
+            "risk_transaction_db_test",
+            "asset_db_test",
+            "framework_db_test",
+            "document_db_test",
+            "training_db_test",
+            "audit_db_test",
+            "compliance_db_test"
         )
         testDatabases.forEach { dbName ->
             exec {
@@ -350,7 +357,14 @@ tasks.register("dropTestDatabases") {
             "code_master_db_test",
             "organization_db_test",
             "reference_data_db_test",
-            // ... 他のテストDB
+            "risk_master_db_test",
+            "risk_transaction_db_test",
+            "asset_db_test",
+            "framework_db_test",
+            "document_db_test",
+            "training_db_test",
+            "audit_db_test",
+            "compliance_db_test"
         )
         testDatabases.forEach { dbName ->
             exec {
@@ -363,7 +377,116 @@ tasks.register("dropTestDatabases") {
         }
     }
 }
+
+// テストDB接続確認タスク
+tasks.register("verifyTestDbConnections") {
+    group = "verification"
+    description = "Verifies connections to all test databases"
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test",
+            "organization_db_test",
+            "reference_data_db_test",
+            "risk_master_db_test",
+            "risk_transaction_db_test",
+            "asset_db_test",
+            "framework_db_test",
+            "document_db_test",
+            "training_db_test",
+            "audit_db_test",
+            "compliance_db_test"
+        )
+        
+        testDatabases.forEach { dbName ->
+            try {
+                // JDBCドライバのロード
+                Class.forName("com.mysql.cj.jdbc.Driver")
+                
+                // 接続テスト
+                val connection = java.sql.DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/$dbName",
+                    "root",
+                    "root"
+                )
+                println("✓ Successfully connected to $dbName")
+                connection.close()
+            } catch (e: Exception) {
+                throw GradleException("Failed to connect to $dbName: ${e.message}")
+            }
+        }
+    }
+}
+
+// テストDB準備タスクに接続確認を追加
+tasks.named("test") {
+    dependsOn("verifyTestDbConnections")
+}
 ```
+
+6. テストデータベース接続のトラブルシューティング
+
+テストデータベースに接続できない場合は、以下の手順で問題を切り分けてください：
+
+1. 接続確認タスクの実行
+```bash
+./gradlew verifyTestDbConnections
+```
+このタスクは各テストDBへの接続を試み、問題があれば詳細なエラーメッセージを表示します。
+
+2. 接続エラーの種類と対処方法
+
+   a. "Communications link failure"
+      - MySQLサーバーが起動しているか確認
+      ```bash
+      # Windowsの場合
+      sc query MySQL80
+      # または
+      net start | findstr MySQL
+      ```
+      - ポート3306が利用可能か確認
+      ```bash
+      netstat -ano | findstr 3306
+      ```
+
+   b. "Access denied for user 'root'@'localhost'"
+      - rootユーザーのパスワードが正しいか確認
+      - MySQLへの直接ログインを試行
+      ```bash
+      mysql -u root -proot
+      ```
+
+   c. "Unknown database"
+      - データベースが作成されているか確認
+      ```bash
+      mysql -u root -proot -e "SHOW DATABASES;"
+      ```
+      - 必要に応じてデータベースを再作成
+      ```bash
+      ./gradlew createTestDatabases
+      ```
+
+3. 確認項目チェックリスト
+   - [ ] MySQLサーバーが起動している
+   - [ ] ポート3306が利用可能
+   - [ ] rootユーザーでログイン可能
+   - [ ] 必要なデータベースが存在する
+   - [ ] 文字コードがutf8mb4に設定されている
+   - [ ] 照合順序がutf8mb4_unicode_ciに設定されている
+
+4. 環境変数の確認
+   ```bash
+   # Windowsの場合
+   echo %MYSQL_HOME%
+   echo %PATH%
+   ```
+
+5. MySQLクライアントでの動作確認
+   ```sql
+   -- 各データベースへの接続テスト
+   USE code_master_db_test;
+   SELECT 1;
+   -- 他のデータベースも同様に確認
+   ```
 
 ### 9.4. テスト実行の方針
 
