@@ -755,41 +755,33 @@ tasks.register("dropAllDatabases") {
     group = "Database"
     description = "全てのデータベースを削除します"
     
-    doFirst {
+    doLast {
         val databases = listOf(
             "code_master_db",
             "organization_db",
             "framework_db",
             "audit_db",
-            "risk_db",
+            "risk_master_db",
+            "risk_transaction_db",
             "asset_db",
             "document_db",
             "training_db"
         )
         
         databases.forEach { dbName ->
-            try {
-                val url = "jdbc:mysql://localhost:3307/mysql"
-                val user = "root"
-                val password = "root"
-                val driver = "com.mysql.cj.jdbc.Driver"
-                
-                Class.forName(driver)
-                val connection = DriverManager.getConnection(url, user, password)
-                try {
-                    val statement = connection.createStatement()
-                    try {
-                        val sql = "DROP DATABASE IF EXISTS $dbName"
-                        statement.execute(sql)
-                        println("データベース ${dbName} を削除しました")
-                    } finally {
-                        statement.close()
-                    }
-                } finally {
-                    connection.close()
-                }
-            } catch (e: Exception) {
-                println("データベース ${dbName} の削除中にエラーが発生しました: ${e.message}")
+            exec {
+                commandLine(
+                    "docker",
+                    "exec",
+                    "-i",
+                    "compliance_mysql",
+                    "mysql",
+                    "-u",
+                    "root",
+                    "-proot",
+                    "-e",
+                    "DROP DATABASE IF EXISTS $dbName;"
+                )
             }
         }
     }
@@ -799,56 +791,46 @@ tasks.register("createAllDatabases") {
     group = "Database"
     description = "全てのデータベースを作成します"
     
-    doFirst {
+    doLast {
         val databases = listOf(
             "code_master_db",
             "organization_db",
             "framework_db",
             "audit_db",
-            "risk_db",
+            "risk_master_db",
+            "risk_transaction_db",
             "asset_db",
             "document_db",
             "training_db"
         )
         
         databases.forEach { dbName ->
-            try {
-                val url = "jdbc:mysql://localhost:3307/mysql?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
-                val user = "root"
-                val password = "root"
-                val driver = "com.mysql.cj.jdbc.Driver"
-                
-                Class.forName(driver)
-                val connection = DriverManager.getConnection(url, user, password)
-                try {
-                    val statement = connection.createStatement()
-                    try {
-                        val sql = "CREATE DATABASE IF NOT EXISTS $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-                        statement.execute(sql)
-                        println("データベース ${dbName} を作成しました")
-                    } finally {
-                        statement.close()
-                    }
-                } finally {
-                    connection.close()
-                }
-            } catch (e: Exception) {
-                println("データベース ${dbName} の作成中にエラーが発生しました: ${e.message}")
+            exec {
+                commandLine(
+                    "docker",
+                    "exec",
+                    "-i",
+                    "compliance_mysql",
+                    "mysql",
+                    "-u",
+                    "root",
+                    "-proot",
+                    "-e",
+                    "CREATE DATABASE IF NOT EXISTS $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+                )
             }
         }
     }
 }
 
-tasks.register("recreateAllDatabases") {
+tasks.register("migrateRiskDatabases") {
     group = "Database"
-    description = "全てのデータベースを再作成します"
+    description = "リスク関連のデータベースのマイグレーションを実行します"
     
-    dependsOn("dropAllDatabases")
-    dependsOn("createAllDatabases")
-    dependsOn("flywayMigrateAll")
+    dependsOn("flywayMigrateRiskMaster")
+    dependsOn("flywayMigrateRiskTransaction")
     
-    tasks.findByName("createAllDatabases")?.mustRunAfter("dropAllDatabases")
-    tasks.findByName("flywayMigrateAll")?.mustRunAfter("createAllDatabases")
+    tasks.findByName("flywayMigrateRiskTransaction")?.mustRunAfter("flywayMigrateRiskMaster")
 }
 
 tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairDocument") {
@@ -903,38 +885,36 @@ tasks.register("createRiskDatabases") {
     }
 }
 
-// リスクマスターデータベースのマイグレーションタスク
+// リスクマスターデータベース用のFlywayタスク
 tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskMaster") {
-    setGroup("flyway")
-    description = "Migrate risk master database"
-    driver = "com.mysql.cj.jdbc.Driver"
     url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "risk_master_db"
     locations = arrayOf("filesystem:src/main/resources/db/migration/risk_master_db")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
 }
 
-// リスクトランザクションデータベースのマイグレーションタスク
+// リスクトランザクションデータベース用のFlywayタスク
 tasks.register<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrateRiskTransaction") {
-    setGroup("flyway")
-    description = "Migrate risk transaction database"
-    driver = "com.mysql.cj.jdbc.Driver"
     url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
     user = "root"
     password = "root"
+    driver = "com.mysql.cj.jdbc.Driver"
+    defaultSchema = "risk_transaction_db"
     locations = arrayOf("filesystem:src/main/resources/db/migration/risk_transaction_db")
-}
-
-// リスクデータベースのマイグレーションを実行するタスク
-tasks.register("migrateRiskDatabases") {
-    setGroup("flyway")
-    description = "Migrate all risk databases"
-    dependsOn("flywayMigrateRiskMaster", "flywayMigrateRiskTransaction")
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
 }
 
 // リスクマスターデータベースのリペアタスク
 tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskMaster") {
-    setGroup("flyway")
     description = "Repair risk master database migration history"
     driver = "com.mysql.cj.jdbc.Driver"
     url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
@@ -945,7 +925,6 @@ tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskMaste
 
 // リスクトランザクションデータベースのリペアタスク
 tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskTransaction") {
-    setGroup("flyway")
     description = "Repair risk transaction database migration history"
     driver = "com.mysql.cj.jdbc.Driver"
     url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
@@ -956,34 +935,83 @@ tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairRiskTrans
 
 // リスクデータベースのリペアを実行するタスク
 tasks.register("repairRiskDatabases") {
-    setGroup("flyway")
+    group = "Database"
     description = "Repair all risk databases migration history"
     dependsOn("flywayRepairRiskMaster", "flywayRepairRiskTransaction")
 }
 
 // リスクマスターデータベースのクリーンタスク
 tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRiskMaster") {
-    setGroup("flyway")
-    description = "Clean risk master database"
     driver = "com.mysql.cj.jdbc.Driver"
     url = "jdbc:mysql://localhost:3307/risk_master_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
-    user = "root"
-    password = "root"
+    user = "compliance_user"
+    password = "compliance_pass"
 }
 
 // リスクトランザクションデータベースのクリーンタスク
 tasks.register<org.flywaydb.gradle.task.FlywayCleanTask>("flywayCleanRiskTransaction") {
-    setGroup("flyway")
-    description = "Clean risk transaction database"
     driver = "com.mysql.cj.jdbc.Driver"
     url = "jdbc:mysql://localhost:3307/risk_transaction_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
-    user = "root"
-    password = "root"
+    user = "compliance_user"
+    password = "compliance_pass"
 }
 
 // リスクデータベースのクリーンを実行するタスク
 tasks.register("cleanRiskDatabases") {
-    setGroup("flyway")
-    description = "Clean all risk databases"
+    group = "Database"
+    description = "Clean both risk databases"
     dependsOn("flywayCleanRiskMaster", "flywayCleanRiskTransaction")
+}
+
+tasks.register("showDatabaseTables") {
+    group = "Database"
+    description = "Show tables in all databases"
+
+    doLast {
+        val jdbcConfiguration = configurations["jdbcDriver"]
+        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
+        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
+        Thread.currentThread().contextClassLoader = classLoader
+
+        val driver = "com.mysql.cj.jdbc.Driver"
+        val baseUrl = "jdbc:mysql://localhost:3307"
+        val user = "compliance_user"
+        val password = "compliance_pass"
+
+        val databases = listOf(
+            "risk_master_db",
+            "risk_transaction_db"
+        )
+
+        try {
+            Class.forName(driver, true, classLoader)
+            databases.forEach { dbName ->
+                println("\nテーブル一覧 - $dbName:")
+                val connection = DriverManager.getConnection("$baseUrl/$dbName?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC", user, password)
+                val metadata = connection.metaData
+                val tables = metadata.getTables(dbName, null, "%", arrayOf("TABLE"))
+                while (tables.next()) {
+                    println(" - ${tables.getString("TABLE_NAME")}")
+                }
+                connection.close()
+            }
+        } catch (e: Exception) {
+            println("エラーが発生しました: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+}
+
+tasks.register("recreateAllDatabases") {
+    group = "Database"
+    description = "全てのデータベースを再作成します"
+    
+    dependsOn("dropAllDatabases")
+    dependsOn("createAllDatabases")
+    dependsOn("flywayMigrateAll")
+    dependsOn("migrateRiskDatabases")
+    
+    tasks.findByName("createAllDatabases")?.mustRunAfter("dropAllDatabases")
+    tasks.findByName("flywayMigrateAll")?.mustRunAfter("createAllDatabases")
+    tasks.findByName("migrateRiskDatabases")?.mustRunAfter("createAllDatabases")
 } 

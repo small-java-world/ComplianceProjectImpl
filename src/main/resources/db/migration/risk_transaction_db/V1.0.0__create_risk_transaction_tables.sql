@@ -2,10 +2,10 @@
 CREATE TABLE Risk (
     risk_id          VARCHAR(36) NOT NULL,
     risk_template_id VARCHAR(36) NULL,
-    title            VARCHAR(200) NOT NULL,
+    risk_name        VARCHAR(200) NOT NULL,
     description      TEXT NULL,
-    impact_code      VARCHAR(50) NOT NULL,
-    likelihood_code  VARCHAR(50) NOT NULL,
+    severity         INT NOT NULL,
+    status          VARCHAR(20) NOT NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_Risk PRIMARY KEY (risk_id)
@@ -13,15 +13,17 @@ CREATE TABLE Risk (
 
 -- RiskAssessment table
 CREATE TABLE RiskAssessment (
-    assessment_id    VARCHAR(36) NOT NULL,
-    risk_id          VARCHAR(36) NOT NULL,
-    assessor_id      VARCHAR(36) NOT NULL,
-    assessment_date  DATE NOT NULL,
-    risk_level_code  VARCHAR(50) NOT NULL,
+    risk_assessment_id VARCHAR(36) NOT NULL,
+    risk_id           VARCHAR(36) NOT NULL,
+    assessment_date   DATE NOT NULL,
+    assessor_id       VARCHAR(36) NOT NULL,
+    likelihood        INT NOT NULL,
+    impact           INT NOT NULL,
+    risk_level       VARCHAR(20) NOT NULL,
     notes            TEXT NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_RiskAssessment PRIMARY KEY (assessment_id),
+    CONSTRAINT PK_RiskAssessment PRIMARY KEY (risk_assessment_id),
     CONSTRAINT FK_RiskAssessment_Risk
         FOREIGN KEY (risk_id)
         REFERENCES Risk(risk_id)
@@ -29,17 +31,17 @@ CREATE TABLE RiskAssessment (
 
 -- RiskTreatmentPlan table
 CREATE TABLE RiskTreatmentPlan (
-    plan_id           VARCHAR(36) NOT NULL,
+    treatment_plan_id VARCHAR(36) NOT NULL,
     risk_id          VARCHAR(36) NOT NULL,
-    requirement_id    VARCHAR(36) NULL,
-    title            VARCHAR(200) NOT NULL,
+    plan_name        VARCHAR(200) NOT NULL,
     description      TEXT NULL,
-    treatment_type_code VARCHAR(50) NOT NULL,
-    status_code      VARCHAR(50) NOT NULL,
-    due_date         DATE NULL,
-    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_RiskTreatmentPlan PRIMARY KEY (plan_id),
+    treatment_type   VARCHAR(50) NOT NULL,
+    status          VARCHAR(50) NOT NULL,
+    start_date      DATE NOT NULL,
+    end_date        DATE NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_RiskTreatmentPlan PRIMARY KEY (treatment_plan_id),
     CONSTRAINT FK_RiskTreatmentPlan_Risk
         FOREIGN KEY (risk_id)
         REFERENCES Risk(risk_id)
@@ -60,11 +62,13 @@ CREATE TABLE AssetRisk (
 
 -- RiskRequirement table
 CREATE TABLE RiskRequirement (
-    risk_requirement_id VARCHAR(36)   NOT NULL,
-    risk_id            VARCHAR(36)   NOT NULL,
-    requirement_id     VARCHAR(50)   NOT NULL,
-    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    risk_requirement_id VARCHAR(36) NOT NULL,
+    risk_id            VARCHAR(36) NOT NULL,
+    requirement_id     VARCHAR(50) NOT NULL,
+    created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_RiskRequirement PRIMARY KEY (risk_requirement_id),
-    CONSTRAINT FK_RiskRequirement_Risk FOREIGN KEY (risk_id) REFERENCES Risk(risk_id)
+    CONSTRAINT FK_RiskRequirement_Risk 
+        FOREIGN KEY (risk_id) 
+        REFERENCES Risk(risk_id)
 ); 
