@@ -34,7 +34,6 @@ CREATE TABLE Risk (
     description      TEXT NULL,
     impact_code      VARCHAR(50) NOT NULL,
     likelihood_code  VARCHAR(50) NOT NULL,
-    status_code      VARCHAR(50) NOT NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_Risk PRIMARY KEY (risk_id),
