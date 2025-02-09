@@ -1,12 +1,12 @@
 -- 組織
-INSERT INTO Organization (organization_id, organization_name, organization_code, description, created_at, updated_at)
+INSERT INTO Organization (organization_id, name, organization_code, description, created_at, updated_at)
 VALUES
 (1, '株式会社テスト', 'TEST_CORP', 'テスト用組織', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (2, 'テスト子会社1', 'TEST_SUB1', 'テスト用子会社1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (3, 'テスト子会社2', 'TEST_SUB2', 'テスト用子会社2', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 部門
-INSERT INTO Department (department_id, organization_id, department_name, department_code, description, parent_department_id, created_at, updated_at)
+INSERT INTO Department (department_id, organization_id, name, department_code, description, parent_id, created_at, updated_at)
 VALUES
 -- 株式会社テスト
 (1, 1, '経営管理部', 'MANAGEMENT', '経営管理部門', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -27,15 +27,15 @@ VALUES
 (12, 3, '品質管理部', 'SUB2_QA', '品質管理部門', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- コンプライアンスプロジェクト
-INSERT INTO ComplianceProject (project_id, organization_id, project_name, project_code, description, framework_type_code, start_date, end_date, status_code, created_at, updated_at)
+INSERT INTO ComplianceProject (project_id, organization_id, project_name, start_date, end_date, status_code, created_at, updated_at)
 VALUES
-(1, 1, 'ISO27001認証取得プロジェクト2024', 'ISO27001_2024', 'ISO27001:2022認証取得プロジェクト', 'ISO27001_2022', '2024-04-01', '2025-03-31', 'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 1, 'PCI DSS準拠プロジェクト2024', 'PCI_DSS_2024', 'PCI DSS v4.0準拠プロジェクト', 'PCI_DSS_4', '2024-04-01', '2025-03-31', 'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(3, 2, 'ISO27001認証取得プロジェクト2024（子会社1）', 'SUB1_ISO27001_2024', 'ISO27001:2022認証取得プロジェクト（子会社1）', 'ISO27001_2022', '2024-04-01', '2025-03-31', 'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+(1, 1, 'ISO27001認証取得プロジェクト2024', '2024-04-01', '2025-03-31', 'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 1, 'PCI DSS準拠プロジェクト2024', '2024-04-01', '2025-03-31', 'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 2, 'ISO27001認証取得プロジェクト2024（子会社1）', '2024-04-01', '2025-03-31', 'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- プロジェクトフレームワーク
-INSERT INTO ProjectFramework (project_framework_id, project_id, framework_type_code, version, description, created_at, updated_at)
+INSERT INTO ProjectFramework (project_framework_id, project_id, framework_code, framework_version, created_at, updated_at)
 VALUES
-(1, 1, 'ISO27001_2022', '1.0', 'ISO27001:2022フレームワーク', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 2, 'PCI_DSS_4', '1.0', 'PCI DSS v4.0フレームワーク', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(3, 3, 'ISO27001_2022', '1.0', 'ISO27001:2022フレームワーク（子会社1）', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP); 
+(1, 1, 'ISO27001_2022', '1.0', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 2, 'PCI_DSS_4', '1.0', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 3, 'ISO27001_2022', '1.0', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP); 
