@@ -55,6 +55,7 @@ dependencies {
 
     // JDBC driver
     add("jdbcDriver", "com.mysql:mysql-connector-j:8.0.33")
+    implementation("com.mysql:mysql-connector-j:8.0.33")
 
     // AWS SDK for S3/MinIO
     implementation("software.amazon.awssdk:s3:2.22.12")
@@ -194,7 +195,6 @@ tasks.withType<Test> {
         showCauses = true
         showStackTraces = true
     }
-    dependsOn("flywayMigrateTest")
 }
 
 tasks.withType<JavaCompile> {
@@ -584,6 +584,60 @@ tasks.register("recreateAllDatabases") {
     tasks.findByName("migrateRiskDatabases")?.mustRunAfter("createAllDatabases")
 }
 
+// JDBCドライバーをロードする関数
+fun loadJdbcDriver(): URLClassLoader {
+    val jdbcConfiguration = configurations["jdbcDriver"]
+    val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
+    val classLoader = URLClassLoader(urls, Thread.currentThread().contextClassLoader)
+    Thread.currentThread().contextClassLoader = classLoader
+    return classLoader
+}
+
+// テスト用データベースのクリーンタスク
+tasks.register("cleanTestDatabases") {
+    group = "Database"
+    description = "Clean all test databases"
+    
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test",
+            "organization_db_test",
+            "reference_data_db_test",
+            "risk_master_db_test",
+            "risk_transaction_db_test",
+            "asset_db_test",
+            "framework_db_test",
+            "document_db_test",
+            "training_db_test",
+            "audit_db_test",
+            "compliance_db_test"
+        )
+
+        // JDBCドライバーをロード
+        val classLoader = loadJdbcDriver()
+        Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
+
+        testDatabases.forEach { dbName ->
+            try {
+                val connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false",
+                    "root",
+                    "root"
+                )
+                connection.use { conn ->
+                    conn.createStatement().use { stmt ->
+                        stmt.execute("DROP DATABASE IF EXISTS $dbName")
+                        println("✓ Dropped database: $dbName")
+                    }
+                }
+            } catch (e: Exception) {
+                throw GradleException("Failed to drop database $dbName: ${e.message}")
+            }
+        }
+    }
+}
+
+// テスト用データベースの作成タスク
 tasks.register("createTestDatabases") {
     group = "Database"
     description = "Creates all test databases"
@@ -602,13 +656,8 @@ tasks.register("createTestDatabases") {
             "compliance_db_test"
         )
 
-        // JDBCドライバーをクラスパスに追加
-        val jdbcConfiguration = configurations["jdbcDriver"]
-        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
-        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
-        Thread.currentThread().contextClassLoader = classLoader
-
-        // JDBCドライバーを登録
+        // JDBCドライバーをロード
+        val classLoader = loadJdbcDriver()
         Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
 
         testDatabases.forEach { dbName ->
@@ -631,10 +680,82 @@ tasks.register("createTestDatabases") {
     }
 }
 
+// テストタスクの依存関係を更新
+tasks.test {
+    dependsOn("recreateTestDatabases")
+    dependsOn("verifyTestDbConnections")
+}
+
+// Flyway設定を更新
+flyway {
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://localhost:3307/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false"
+    user = "root"
+    password = "root"
+    validateOnMigrate = true
+    outOfOrder = false
+    baselineOnMigrate = true
+    cleanDisabled = false
+}
+
+// テストデータベースごとのマイグレーションタスクを作成
+val testDatabases = listOf(
+    "code_master_db_test",
+    "organization_db_test",
+    "reference_data_db_test",
+    "risk_master_db_test",
+    "risk_transaction_db_test",
+    "asset_db_test",
+    "framework_db_test",
+    "document_db_test",
+    "training_db_test",
+    "audit_db_test",
+    "compliance_db_test"
+)
+
+testDatabases.forEach { testDb ->
+    val dbName = testDb.replace("_test", "")
+    tasks.create<org.flywaydb.gradle.task.FlywayMigrateTask>("flywayMigrate${testDb.replace("_", "").replaceFirstChar { it.uppercase() }}") {
+        driver = "com.mysql.cj.jdbc.Driver"
+        url = "jdbc:mysql://localhost:3307/$testDb?allowPublicKeyRetrieval=true&useSSL=false"
+        user = "root"
+        password = "root"
+        locations = arrayOf("filesystem:src/main/resources/db/migration/${dbName}")
+        validateOnMigrate = true
+        outOfOrder = false
+        baselineOnMigrate = true
+        cleanDisabled = false
+    }
+}
+
+// マイグレーションタスクの依存関係を設定
+tasks.register("migrateTestDatabases") {
+    group = "Database"
+    description = "Migrates all test databases"
+    dependsOn(testDatabases.map { testDb ->
+        "flywayMigrate${testDb.replace("_", "").replaceFirstChar { it.uppercase() }}"
+    })
+}
+
+// テスト用データベースの再作成タスク
+tasks.register("recreateTestDatabases") {
+    group = "Database"
+    description = "Recreate all test databases"
+    
+    dependsOn("cleanTestDatabases")
+    dependsOn("createTestDatabases")
+    dependsOn("migrateTestDatabases")
+    
+    tasks.findByName("createTestDatabases")?.mustRunAfter("cleanTestDatabases")
+    tasks.findByName("migrateTestDatabases")?.mustRunAfter("createTestDatabases")
+}
+
+// テスト用データベースの接続確認タスク
 tasks.register("verifyTestDbConnections") {
     group = "Database"
     description = "Verifies connections to all test databases"
-    dependsOn("createTestDatabases")
+    dependsOn("migrateTestDatabases")
+    
     doLast {
         val testDatabases = listOf(
             "code_master_db_test",
@@ -650,13 +771,8 @@ tasks.register("verifyTestDbConnections") {
             "compliance_db_test"
         )
 
-        // JDBCドライバーをクラスパスに追加
-        val jdbcConfiguration = configurations["jdbcDriver"]
-        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
-        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
-        Thread.currentThread().contextClassLoader = classLoader
-
-        // JDBCドライバーを登録
+        // JDBCドライバーをロード
+        val classLoader = loadJdbcDriver()
         Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
 
         testDatabases.forEach { dbName ->
@@ -681,120 +797,27 @@ tasks.register("verifyTestDbConnections") {
     }
 }
 
-// テストタスクに接続確認を追加
-tasks.test {
-    dependsOn("verifyTestDbConnections")
+// デフォルトのFlywayタスクを無効化
+tasks.named("flywayMigrate") {
+    enabled = false
 }
 
-// テスト用データベースのマイグレーションタスク
-tasks.register("migrateTestDatabases") {
-    group = "Database"
-    description = "Migrate all test databases"
-    dependsOn("createTestDatabases")
-    
-    doLast {
-        val testDatabases = listOf(
-            "code_master_db_test" to "code_master_db",
-            "organization_db_test" to "organization_db",
-            "reference_data_db_test" to "reference_data_db",
-            "risk_master_db_test" to "risk_master_db",
-            "risk_transaction_db_test" to "risk_transaction_db",
-            "asset_db_test" to "asset_db",
-            "framework_db_test" to "framework_db",
-            "document_db_test" to "document_db",
-            "training_db_test" to "training_db",
-            "audit_db_test" to "audit_db",
-            "compliance_db_test" to "compliance_db"
-        )
-
-        testDatabases.forEach { (testDb, sourceDb) ->
-            val flyway = org.flywaydb.core.Flyway.configure()
-                .dataSource(
-                    "jdbc:mysql://localhost:3307/${testDb}?allowPublicKeyRetrieval=true&useSSL=false",
-                    "root",
-                    "root"
-                )
-                .locations("filesystem:src/main/resources/db/migration/${sourceDb}")
-                .load()
-
-            try {
-                flyway.migrate()
-                println("✓ Migrated database: $testDb")
-            } catch (e: Exception) {
-                throw GradleException("Failed to migrate database $testDb: ${e.message}")
-            }
-        }
-    }
+tasks.named("flywayClean") {
+    enabled = false
 }
 
-// テスト用データベースのクリーンタスク
-tasks.register("cleanTestDatabases") {
-    group = "Database"
-    description = "Clean all test databases"
-    
-    doLast {
-        val testDatabases = listOf(
-            "code_master_db_test",
-            "organization_db_test",
-            "reference_data_db_test",
-            "risk_master_db_test",
-            "risk_transaction_db_test",
-            "asset_db_test",
-            "framework_db_test",
-            "document_db_test",
-            "training_db_test",
-            "audit_db_test",
-            "compliance_db_test"
-        )
-
-        // JDBCドライバーをクラスパスに追加
-        val jdbcConfiguration = configurations["jdbcDriver"]
-        val urls = jdbcConfiguration.files.map { it.toURI().toURL() }.toTypedArray()
-        val classLoader = URLClassLoader(urls, this.javaClass.classLoader)
-        Thread.currentThread().contextClassLoader = classLoader
-
-        // JDBCドライバーを登録
-        Class.forName("com.mysql.cj.jdbc.Driver", true, classLoader)
-
-        testDatabases.forEach { dbName ->
-            try {
-                val connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3307/?allowPublicKeyRetrieval=true&useSSL=false",
-                    "root",
-                    "root"
-                )
-                connection.use { conn ->
-                    conn.createStatement().use { stmt ->
-                        stmt.execute("DROP DATABASE IF EXISTS $dbName")
-                        println("✓ Dropped database: $dbName")
-                    }
-                }
-            } catch (e: Exception) {
-                throw GradleException("Failed to drop database $dbName: ${e.message}")
-            }
-        }
-    }
+tasks.named("flywayInfo") {
+    enabled = false
 }
 
-// テスト用データベースの再作成タスク
-tasks.register("recreateTestDatabases") {
-    group = "Database"
-    description = "Recreate all test databases"
-    
-    dependsOn("cleanTestDatabases")
-    dependsOn("createTestDatabases")
-    dependsOn("migrateTestDatabases")
-    
-    tasks.findByName("createTestDatabases")?.mustRunAfter("cleanTestDatabases")
-    tasks.findByName("migrateTestDatabases")?.mustRunAfter("createTestDatabases")
+tasks.named("flywayValidate") {
+    enabled = false
 }
 
-// verifyTestDbConnectionsタスクの依存関係を更新
-tasks.named("verifyTestDbConnections") {
-    dependsOn("migrateTestDatabases")
+tasks.named("flywayRepair") {
+    enabled = false
 }
 
-// テストタスクの依存関係を更新
-tasks.test {
-    dependsOn("recreateTestDatabases")
+tasks.named("flywayBaseline") {
+    enabled = false
 } 
