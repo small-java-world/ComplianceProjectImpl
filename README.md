@@ -360,6 +360,11 @@ CREATE DATABASE training_db;
 - ドキュメントと資産データ
 - 教育データ
 
+### データベースの初期化
+```bash
+./gradlew recreateAllDatabases
+```
+
 ### 注意事項
 - 本番環境では、`flywayClean`コマンドを使用しないでください。
 - マイグレーションとデータ投入は、必ずバックアップを取得してから実行してください。

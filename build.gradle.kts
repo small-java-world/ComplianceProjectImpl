@@ -3,6 +3,7 @@ import java.util.Properties
 import java.net.URLClassLoader
 import java.sql.Driver
 import java.sql.DriverManager
+import java.sql.Connection
 
 plugins {
     id("org.springframework.boot") version "3.2.2"
@@ -788,4 +789,104 @@ tasks.register("loadAssetData") {
 
         flyway.migrate()
     }
+}
+
+tasks.register("dropAllDatabases") {
+    group = "Database"
+    description = "全てのデータベースを削除します"
+    
+    doFirst {
+        val databases = listOf(
+            "code_master_db",
+            "organization_db",
+            "framework_db",
+            "audit_db",
+            "risk_db",
+            "asset_db",
+            "document_db",
+            "training_db"
+        )
+        
+        databases.forEach { dbName ->
+            try {
+                val url = "jdbc:mysql://localhost:3307/mysql"
+                val user = "root"
+                val password = "root"
+                val driver = "com.mysql.cj.jdbc.Driver"
+                
+                Class.forName(driver)
+                val connection = DriverManager.getConnection(url, user, password)
+                try {
+                    val statement = connection.createStatement()
+                    try {
+                        val sql = "DROP DATABASE IF EXISTS $dbName"
+                        statement.execute(sql)
+                        println("データベース ${dbName} を削除しました")
+                    } finally {
+                        statement.close()
+                    }
+                } finally {
+                    connection.close()
+                }
+            } catch (e: Exception) {
+                println("データベース ${dbName} の削除中にエラーが発生しました: ${e.message}")
+            }
+        }
+    }
+}
+
+tasks.register("createAllDatabases") {
+    group = "Database"
+    description = "全てのデータベースを作成します"
+    
+    doFirst {
+        val databases = listOf(
+            "code_master_db",
+            "organization_db",
+            "framework_db",
+            "audit_db",
+            "risk_db",
+            "asset_db",
+            "document_db",
+            "training_db"
+        )
+        
+        databases.forEach { dbName ->
+            try {
+                val url = "jdbc:mysql://localhost:3307/mysql"
+                val user = "root"
+                val password = "root"
+                val driver = "com.mysql.cj.jdbc.Driver"
+                
+                Class.forName(driver)
+                val connection = DriverManager.getConnection(url, user, password)
+                try {
+                    val statement = connection.createStatement()
+                    try {
+                        val sql = "CREATE DATABASE IF NOT EXISTS $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+                        statement.execute(sql)
+                        println("データベース ${dbName} を作成しました")
+                    } finally {
+                        statement.close()
+                    }
+                } finally {
+                    connection.close()
+                }
+            } catch (e: Exception) {
+                println("データベース ${dbName} の作成中にエラーが発生しました: ${e.message}")
+            }
+        }
+    }
+}
+
+tasks.register("recreateAllDatabases") {
+    group = "Database"
+    description = "全てのデータベースを再作成します"
+    
+    dependsOn("dropAllDatabases")
+    dependsOn("createAllDatabases")
+    dependsOn("flywayMigrateAll")
+    
+    tasks.findByName("createAllDatabases")?.mustRunAfter("dropAllDatabases")
+    tasks.findByName("flywayMigrateAll")?.mustRunAfter("createAllDatabases")
 } 
