@@ -50,4 +50,19 @@ CREATE TABLE PermissionDetail (
     updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_PermissionDetail PRIMARY KEY (permission_id),
     CONSTRAINT FK_PermissionDetail_User FOREIGN KEY (user_id) REFERENCES User(user_id)
+);
+
+-- PermissionDetail_Department table
+CREATE TABLE PermissionDetail_Department (
+    permission_id    VARCHAR(36)   NOT NULL,
+    department_id    VARCHAR(36)   NOT NULL,
+    created_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_PermissionDetail_Department PRIMARY KEY (permission_id, department_id),
+    CONSTRAINT FK_PermissionDetail_Department_Permission 
+        FOREIGN KEY (permission_id) 
+        REFERENCES PermissionDetail(permission_id),
+    CONSTRAINT FK_PermissionDetail_Department_Department
+        FOREIGN KEY (department_id) 
+        REFERENCES Department(department_id)
 ); 
