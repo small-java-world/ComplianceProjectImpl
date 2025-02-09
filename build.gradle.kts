@@ -216,14 +216,6 @@ tasks.register("testDatabaseConnection") {
     group = "Database"
     description = "Test database connection using JDBC"
 
-    // タスクのクラスパスにJDBCドライバーを追加
-    configurations {
-        create("jdbcDriver")
-    }
-    dependencies {
-        add("jdbcDriver", "com.mysql:mysql-connector-j:8.0.33")
-    }
-
     doLast {
         // JDBCドライバーをクラスパスに追加
         val jdbcConfiguration = configurations["jdbcDriver"]
@@ -250,24 +242,13 @@ tasks.register("testDatabaseConnection") {
                 println(" - ${d.javaClass.name}")
             }
 
-            val connection = driverInstance.connect(url, Properties().apply {
-                setProperty("user", user)
-                setProperty("password", password)
-            })
-            try {
-                val statement = connection.createStatement()
-                val resultSet = statement.executeQuery("SELECT 1")
-                if (resultSet.next()) {
-                    println("データベース接続テスト成功！")
-                    println("テストクエリ結果: ${resultSet.getInt(1)}")
-                }
-                resultSet.close()
-                statement.close()
-            } finally {
-                connection.close()
-            }
+            // データベースに接続
+            println("データベースに接続を試みます...")
+            val connection = DriverManager.getConnection(url, user, password)
+            println("データベース接続成功!")
+            connection.close()
         } catch (e: Exception) {
-            println("データベース接続テスト失敗: ${e.message}")
+            println("データベース接続エラー: ${e.message}")
             throw e
         }
     }
@@ -871,12 +852,17 @@ tasks.register("recreateAllDatabases") {
 }
 
 tasks.register<org.flywaydb.gradle.task.FlywayRepairTask>("flywayRepairDocument") {
-    description = "ドキュメント管理データベースのマイグレーション履歴を修復します"
     driver = "com.mysql.cj.jdbc.Driver"
     url = "jdbc:mysql://localhost:3307/document_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
-    user = "root"
-    password = "root"
+    user = "compliance_user"
+    password = "compliance_pass"
     locations = arrayOf("filesystem:src/main/resources/db/migration/document_db")
+}
+
+tasks.register("repairAllDatabases") {
+    group = "Database"
+    description = "Repairs all database migration histories"
+    dependsOn("flywayRepairDocument")
 }
 
 // リスクデータベースの作成タスク
