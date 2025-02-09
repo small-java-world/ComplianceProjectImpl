@@ -230,3 +230,210 @@ services:
    - テストデータの確認
    - トランザクション境界の確認
    - ロールバック処理の確認
+
+## 9. 現状のデータベース構成とテスト実行方針
+
+### 9.1. データベース構成
+現在、以下のデータベースが正常に動作しています：
+
+1. コアデータベース群
+   - `code_master_db`: コードマスタ管理
+   - `organization_db`: 組織管理
+   - `reference_data_db`: 参照データ管理
+
+2. リスク管理データベース群
+   - `risk_master_db`: リスクマスタ
+   - `risk_transaction_db`: リスクトランザクション
+
+3. 業務データベース群
+   - `asset_db`: アセット管理
+   - `framework_db`: フレームワーク管理
+   - `document_db`: 文書管理
+   - `training_db`: 教育管理
+   - `audit_db`: 監査管理
+   - `compliance_db`: コンプライアンス管理
+
+### 9.2. マイグレーション構成
+各データベースのマイグレーションファイルは以下の構造で管理：
+
+```
+src/main/resources/db/
+├── migration/
+│   ├── code_master_db/
+│   │   └── V1.0.0__create_m_code.sql
+│   ├── organization_db/
+│   │   └── V1.0.0__create_organization_tables.sql
+│   ├── risk_master_db/
+│   │   └── V1.0.0__create_risk_master_tables.sql
+│   └── ...（他のデータベース）
+└── transactiondata/
+    ├── code_master_db/
+    │   └── V2.0.1__insert_initial_data.sql
+    ├── organization_db/
+    │   └── V1.0.2__insert_initial_data.sql
+    └── ...（他のデータベース）
+```
+
+### 9.3. テスト用データベース設定
+
+1. テスト用データベース一覧
+   - `code_master_db_test`: コードマスタ管理テスト用DB
+   - `organization_db_test`: 組織管理テスト用DB
+   - `reference_data_db_test`: 参照データ管理テスト用DB
+   - `risk_master_db_test`: リスクマスタテスト用DB
+   - `risk_transaction_db_test`: リスクトランザクションテスト用DB
+   - `asset_db_test`: アセット管理テスト用DB
+   - `framework_db_test`: フレームワーク管理テスト用DB
+   - `document_db_test`: 文書管理テスト用DB
+   - `training_db_test`: 教育管理テスト用DB
+   - `audit_db_test`: 監査管理テスト用DB
+   - `compliance_db_test`: コンプライアンス管理テスト用DB
+
+2. テスト用データベース接続設定
+```yaml
+# application-test.yml
+spring:
+  datasource:
+    code-master:
+      url: jdbc:mysql://localhost:3306/code_master_db_test
+      username: root
+      password: root
+    organization:
+      url: jdbc:mysql://localhost:3306/organization_db_test
+      username: root
+      password: root
+    # ... 他のデータベース設定
+```
+
+3. テストデータベース初期化ルール
+   - テスト実行前に毎回クリーンアップ
+   - プロダクションのマイグレーションファイルでスキーマを作成
+   - テストデータは `src/test/resources/db/testdata` から投入
+   - 各テストケースはトランザクション内で実行し、自動ロールバック
+
+4. テストデータベースの分離
+   - プロダクション環境のDBとは完全に分離
+   - テスト用DBは接尾辞 `_test` を付与
+   - テスト用DBのユーザーは全て `root` を使用
+   - テスト用DBのパスワードは全て `root` を使用
+
+5. テストデータベースのセットアップ
+```kotlin
+// build.gradle.kts
+tasks.register("createTestDatabases") {
+    group = "verification"
+    description = "Creates all test databases"
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test",
+            "organization_db_test",
+            "reference_data_db_test",
+            // ... 他のテストDB
+        )
+        testDatabases.forEach { dbName ->
+            exec {
+                commandLine("mysql", 
+                    "-u", "root", 
+                    "-proot", 
+                    "-e", "CREATE DATABASE IF NOT EXISTS $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+                )
+            }
+        }
+    }
+}
+
+tasks.register("dropTestDatabases") {
+    group = "verification"
+    description = "Drops all test databases"
+    doLast {
+        val testDatabases = listOf(
+            "code_master_db_test",
+            "organization_db_test",
+            "reference_data_db_test",
+            // ... 他のテストDB
+        )
+        testDatabases.forEach { dbName ->
+            exec {
+                commandLine("mysql", 
+                    "-u", "root", 
+                    "-proot", 
+                    "-e", "DROP DATABASE IF EXISTS $dbName;"
+                )
+            }
+        }
+    }
+}
+```
+
+### 9.4. テスト実行の方針
+
+1. データベース初期化
+```bash
+./gradlew recreateAllDatabases
+```
+- 全データベースを削除（`dropAllDatabases`）
+- 全データベースを再作成（`createAllDatabases`）
+- マイグレーション実行（`flywayMigrateAll`）
+- リスクデータベース特別処理（`migrateRiskDatabases`）
+
+2. テストデータ準備
+- プロダクションのマイグレーションファイルを使用
+- テストケースごとに必要なデータをセットアップメソッドで準備
+- トランザクション管理による自動ロールバック
+
+3. テスト実行
+```bash
+./gradlew test
+```
+- テスト実行前に必要なデータベースが存在することを確認
+- 各テストケースは独立して実行可能
+- テスト終了後は自動でロールバック
+
+### 9.5. Gradleタスクの依存関係
+
+```mermaid
+graph TD
+    A[recreateAllDatabases] --> B[dropAllDatabases]
+    A --> C[createAllDatabases]
+    A --> D[flywayMigrateAll]
+    A --> E[migrateRiskDatabases]
+    C --> F[各データベース作成]
+    D --> G[各データベースのマイグレーション]
+    E --> H[リスクマスターDB]
+    E --> I[リスクトランザクションDB]
+```
+
+### 9.6. テスト実行時の注意点
+
+1. データベース準備
+   - テスト実行前に `recreateAllDatabases` タスクを実行
+   - 全データベースが正しく作成されていることを確認
+
+2. テストデータ管理
+   - テストケースごとに必要最小限のデータのみを準備
+   - `@BeforeEach` でデータセットアップ
+   - `@AfterEach` でクリーンアップは不要（トランザクションロールバック）
+
+3. トランザクション管理
+   - `@Transactional` アノテーションを使用
+   - テストメソッド終了時に自動ロールバック
+   - 必要に応じて `@Rollback(false)` で制御
+
+4. 並列実行への対応
+   - テストメソッドは独立して実行可能に設計
+   - 共有リソースへのアクセスを最小限に
+
+### 9.7. CI/CD環境での実行手順
+
+1. データベース環境準備
+```bash
+# データベース再作成とマイグレーション
+./gradlew recreateAllDatabases flywayMigrateAll
+
+# テスト実行
+./gradlew test
+```
+
+2. テスト結果の確認
+- テストレポート: `build/reports/tests/test/index.html`
+- カバレッジレポート: `build/reports/jacoco/test/html/index.html`
