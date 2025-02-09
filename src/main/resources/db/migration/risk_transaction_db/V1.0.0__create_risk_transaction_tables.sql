@@ -71,4 +71,5 @@ CREATE TABLE RiskRequirement (
     CONSTRAINT FK_RiskRequirement_Risk 
         FOREIGN KEY (risk_id) 
         REFERENCES Risk(risk_id)
-); 
+);
+
