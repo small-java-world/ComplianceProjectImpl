@@ -75,6 +75,9 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
     testImplementation("org.springframework.security:spring-security-test")
+
+    // MySQL connector
+    implementation("mysql:mysql-connector-java:8.0.33")
 }
 
 buildscript {
@@ -224,6 +227,48 @@ tasks {
                 project.tasks.getByName("flywayMigrate").actions.forEach { action ->
                     action.execute(project.tasks.getByName("flywayMigrate"))
                 }
+            }
+        }
+    }
+
+    register("recreateOrganizationDb") {
+        group = "Database"
+        description = "Recreate organization_db_test database"
+        
+        doLast {
+            Class.forName("com.mysql.cj.jdbc.Driver")
+            val dbName = "organization_db_test"
+            val url = "jdbc:mysql://localhost:3307"
+            val user = "root"
+            val password = "root"
+
+            // Drop database if exists and create new one
+            DriverManager.getConnection(url, user, password).use { connection ->
+                connection.createStatement().use { statement ->
+                    statement.execute("DROP DATABASE IF EXISTS $dbName")
+                    statement.execute("CREATE DATABASE $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                }
+            }
+        }
+    }
+
+    register("flywayMigrateOrganization") {
+        group = "Database"
+        description = "Run Flyway migration for organization_db"
+        dependsOn("recreateOrganizationDb")
+        
+        doLast {
+            project.extensions.getByType<org.flywaydb.gradle.FlywayExtension>().apply {
+                url = "jdbc:mysql://localhost:3307/organization_db_test"
+                user = "root"
+                password = "root"
+                locations = arrayOf(
+                    "filesystem:src/main/resources/db/migration/organization_db",
+                    "filesystem:src/main/resources/db/migration/organization_db_test"
+                )
+            }
+            project.tasks.getByName("flywayMigrate").actions.forEach { action ->
+                action.execute(project.tasks.getByName("flywayMigrate"))
             }
         }
     }
