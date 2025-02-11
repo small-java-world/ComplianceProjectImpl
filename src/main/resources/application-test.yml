@@ -1,0 +1,67 @@
+spring:
+  datasource:
+    code-master:
+      url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${CODE_MASTER_DB_TEST:code_master_db_test}
+      username: ${DB_USER:root}
+      password: ${DB_PASSWORD:root}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    organization:
+      url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${ORGANIZATION_DB_TEST:organization_db_test}
+      username: ${DB_USER:root}
+      password: ${DB_PASSWORD:root}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    risk:
+      url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${RISK_DB_TEST:risk_db_test}
+      username: ${DB_USER:root}
+      password: ${DB_PASSWORD:root}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    framework:
+      url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${FRAMEWORK_DB_TEST:framework_db_test}
+      username: ${DB_USER:root}
+      password: ${DB_PASSWORD:root}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    audit:
+      url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${AUDIT_DB_TEST:audit_db_test}
+      username: ${DB_USER:root}
+      password: ${DB_PASSWORD:root}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    document:
+      url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DOCUMENT_DB_TEST:document_db_test}
+      username: ${DB_USER:root}
+      password: ${DB_PASSWORD:root}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    training:
+      url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${TRAINING_DB_TEST:training_db_test}
+      username: ${DB_USER:root}
+      password: ${DB_PASSWORD:root}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  jooq:
+    sql-dialect: MYSQL
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations:
+      - classpath:db/migration/code_master_db
+      - classpath:db/migration/organization_db
+      - classpath:db/migration/risk_db
+      - classpath:db/migration/framework_db
+      - classpath:db/migration/audit_db
+      - classpath:db/migration/document_db
+      - classpath:db/migration/training_db
+
+logging:
+  level:
+    root: INFO
+    com.example.project: DEBUG
+    org.jooq: DEBUG
+    org.jooq.tools.LoggerListener: DEBUG 

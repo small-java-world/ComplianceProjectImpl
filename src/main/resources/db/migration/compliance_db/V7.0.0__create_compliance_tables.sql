@@ -1,5 +1,5 @@
 -- ComplianceProject table
-CREATE TABLE ComplianceProject (
+CREATE TABLE IF NOT EXISTS ComplianceProject (
     project_id       VARCHAR(36)   NOT NULL,
     organization_id  VARCHAR(36)   NOT NULL,
     name            VARCHAR(100)  NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE ComplianceProject (
 );
 
 -- ProjectScope table
-CREATE TABLE ProjectScope (
+CREATE TABLE IF NOT EXISTS ProjectScope (
     scope_id        VARCHAR(36)   NOT NULL,
     project_id      VARCHAR(36)   NOT NULL,
     department_id   VARCHAR(36)   NULL,
@@ -25,7 +25,7 @@ CREATE TABLE ProjectScope (
 );
 
 -- ComplianceFramework table
-CREATE TABLE ComplianceFramework (
+CREATE TABLE IF NOT EXISTS ComplianceFramework (
     framework_id    VARCHAR(36)   NOT NULL,
     name           VARCHAR(100)  NOT NULL,
     version        VARCHAR(20)   NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE ComplianceFramework (
 );
 
 -- ProjectFramework table
-CREATE TABLE ProjectFramework (
+CREATE TABLE IF NOT EXISTS ProjectFramework (
     project_framework_id VARCHAR(36)   NOT NULL,
     project_id          VARCHAR(36)   NOT NULL,
     framework_id        VARCHAR(36)   NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE ProjectFramework (
 );
 
 -- Requirement table
-CREATE TABLE Requirement (
+CREATE TABLE IF NOT EXISTS Requirement (
     requirement_id  VARCHAR(50)   NOT NULL,
     framework_id    VARCHAR(36)   NOT NULL,
     parent_id      VARCHAR(50)   NULL,
@@ -62,7 +62,7 @@ CREATE TABLE Requirement (
 );
 
 -- ImplementationTask table
-CREATE TABLE ImplementationTask (
+CREATE TABLE IF NOT EXISTS ImplementationTask (
     task_id         VARCHAR(36)   NOT NULL,
     requirement_id  VARCHAR(50)   NOT NULL,
     project_id      VARCHAR(36)   NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE ImplementationTask (
 );
 
 -- Evidence table
-CREATE TABLE Evidence (
+CREATE TABLE IF NOT EXISTS Evidence (
     evidence_id     VARCHAR(36)   NOT NULL,
     task_id         VARCHAR(36)   NOT NULL,
     title           VARCHAR(200)  NOT NULL,
