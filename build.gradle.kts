@@ -8,8 +8,8 @@ import java.sql.Connection
 plugins {
     id("org.springframework.boot") version "3.2.2"
     id("io.spring.dependency-management") version "1.1.4"
-    id("nu.studer.jooq") version "8.2"
     id("org.flywaydb.flyway") version "9.22.3"
+    id("nu.studer.jooq") version "8.2"
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.spring") version "2.1.0"
     kotlin("plugin.jpa") version "2.1.0"
@@ -101,28 +101,40 @@ fun loadEnvVariables(): Map<String, String> {
 
 val envVariables = loadEnvVariables()
 jooq {
+    version.set("3.19.0")
     configurations {
         create("main") {
             jooqConfiguration.apply {
                 jdbc.apply {
                     driver = "com.mysql.cj.jdbc.Driver"
-                    url = "jdbc:mysql://localhost:3307/code_master_db_test"
-                    user = "compliance_user"
-                    password = "compliance_pass"
+                    url = "jdbc:mysql://localhost:3306/code_master_db_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+                    user = "root"
+                    password = "root"
                 }
                 generator.apply {
-                    name = "org.jooq.codegen.DefaultGenerator"
+                    name = "org.jooq.codegen.KotlinGenerator"
                     database.apply {
                         name = "org.jooq.meta.mysql.MySQLDatabase"
                         inputSchema = "code_master_db_test"
                         includes = ".*"
                         excludes = ""
+                        forcedTypes.addAll(
+                            listOf(
+                                org.jooq.meta.jaxb.ForcedType()
+                                    .withName("BOOLEAN")
+                                    .withIncludeTypes("TINYINT\\(1\\)")
+                            )
+                        )
                     }
                     generate.apply {
                         isDeprecated = false
                         isRecords = true
                         isImmutablePojos = true
                         isFluentSetters = true
+                        isPojosEqualsAndHashCode = true
+                        isJavaTimeTypes = true
+                        isKotlinNotNullRecordAttributes = true
+                        isKotlinNotNullPojoAttributes = true
                     }
                     target.apply {
                         packageName = "com.example.project.jooq"
@@ -638,14 +650,10 @@ tasks.test {
 
 // Flyway設定を更新
 flyway {
-    driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://localhost:3307/compliance_management_system?allowPublicKeyRetrieval=true&useSSL=false"
-    user = "compliance_user"
-    password = "compliance_pass"
-    validateOnMigrate = true
-    outOfOrder = false
-    baselineOnMigrate = true
-    cleanDisabled = false
+    url = "jdbc:mysql://localhost:3306/code_master_db_test"
+    user = "root"
+    password = "root"
+    locations = arrayOf("filesystem:src/main/resources/db/migration/code_master_db")
 }
 
 // テスト用データベースのマイグレーションタスク

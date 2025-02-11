@@ -1,4 +1,4 @@
-CREATE TABLE M_CODE (
+CREATE TABLE IF NOT EXISTS M_CODE (
     code_category      VARCHAR(50)  NOT NULL, 
     code               VARCHAR(50)  NOT NULL, 
     code_division      VARCHAR(50)  NOT NULL, 
@@ -19,11 +19,11 @@ CREATE TABLE M_CODE (
     extension13        VARCHAR(100) NULL,
     extension14        VARCHAR(100) NULL,
     extension15        VARCHAR(100) NULL,
-    display_order INT NOT NULL DEFAULT 0,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    description TEXT,
-    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    display_order      INT          NOT NULL DEFAULT 0,
+    is_active         BOOLEAN      NOT NULL DEFAULT true,
+    description       TEXT,
+    created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT PK_M_CODE PRIMARY KEY (code_category, code)
 );
