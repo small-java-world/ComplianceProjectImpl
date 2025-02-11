@@ -104,13 +104,13 @@ val envVariables = loadEnvVariables()
 
 // データベース設定
 val dbConfig = mapOf(
-    "code_master_db" to "code_master_db_test",
-    "organization_db" to "organization_db_test",
-    "risk_db" to "risk_db_test",
-    "framework_db" to "framework_db_test",
-    "audit_db" to "audit_db_test",
-    "document_db" to "document_db_test",
-    "training_db" to "training_db_test"
+    "code_master_db" to project.property("dbCodeMasterTest").toString(),
+    "organization_db" to project.property("dbOrganizationTest").toString(),
+    "risk_db" to project.property("dbRiskTest").toString(),
+    "framework_db" to project.property("dbFrameworkTest").toString(),
+    "audit_db" to project.property("dbAuditTest").toString(),
+    "document_db" to project.property("dbDocumentTest").toString(),
+    "training_db" to project.property("dbTrainingTest").toString()
 )
 
 jooq {
@@ -120,9 +120,9 @@ jooq {
             jooqConfiguration.apply {
                 jdbc.apply {
                     driver = "com.mysql.cj.jdbc.Driver"
-                    url = "jdbc:mysql://localhost:3306/code_master_db_test"
-                    user = "root"
-                    password = "root"
+                    url = "jdbc:mysql://${project.property("dbHost")}:${project.property("dbPort")}/${project.property("dbCodeMasterTest")}"
+                    user = project.property("dbUsername").toString()
+                    password = project.property("dbPassword").toString()
                 }
                 generator.apply {
                     name = "org.jooq.codegen.KotlinGenerator"
@@ -172,9 +172,9 @@ tasks {
             Thread.currentThread().contextClassLoader = classLoader
 
             val driver = "com.mysql.cj.jdbc.Driver"
-            val baseUrl = "jdbc:mysql://localhost:3306"
-            val user = "root"
-            val password = "root"
+            val baseUrl = "jdbc:mysql://${project.property("dbHost")}:${project.property("dbPort")}"
+            val user = project.property("dbUsername").toString()
+            val password = project.property("dbPassword").toString()
 
             try {
                 Class.forName(driver, true, classLoader)
@@ -184,7 +184,7 @@ tasks {
                     dbConfig.values.forEach { dbName ->
                         println("Creating database: $dbName")
                         statement.execute("DROP DATABASE IF EXISTS $dbName")
-                        statement.execute("CREATE DATABASE $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                        statement.execute("CREATE DATABASE $dbName CHARACTER SET ${project.property("dbCharset")} COLLATE ${project.property("dbCollation")}")
                     }
                 }
             } catch (e: Exception) {
@@ -211,9 +211,9 @@ tasks {
             dbConfig.forEach { (key, dbName) ->
                 println("Running Flyway migration for: $dbName")
                 project.extensions.getByType<org.flywaydb.gradle.FlywayExtension>().apply {
-                    url = "jdbc:mysql://localhost:3306/$dbName"
-                    user = "root"
-                    password = "root"
+                    url = "jdbc:mysql://${project.property("dbHost")}:${project.property("dbPort")}/$dbName"
+                    user = project.property("dbUsername").toString()
+                    password = project.property("dbPassword").toString()
                     baselineOnMigrate = true
                     baselineVersion = "0"
                     locations = arrayOf("classpath:db/migration/${key}")
