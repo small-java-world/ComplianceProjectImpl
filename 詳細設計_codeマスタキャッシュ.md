@@ -120,6 +120,11 @@ CREATE TABLE M_CODE (
     extension8      VARCHAR(100) NULL,
     extension9      VARCHAR(100) NULL,
     extension10     VARCHAR(100) NULL,
+    extension11     VARCHAR(100) NULL,
+    extension12     VARCHAR(100) NULL,
+    extension13     VARCHAR(100) NULL,
+    extension14     VARCHAR(100) NULL,
+    extension15     VARCHAR(100) NULL,
 
     created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -208,6 +213,11 @@ data class MCodeEntry(
     val extension8: String?,
     val extension9: String?,
     val extension10: String?,
+    val extension11: String?,
+    val extension12: String?,
+    val extension13: String?,
+    val extension14: String?,
+    val extension15: String?,
     val updatedAt: LocalDateTime
 )
 ```
