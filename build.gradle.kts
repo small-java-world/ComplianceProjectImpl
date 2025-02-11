@@ -73,6 +73,7 @@ dependencies {
     testImplementation("io.kotest:kotest-property:5.9.0")
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
+    testImplementation("org.springframework.security:spring-security-test")
 }
 
 buildscript {

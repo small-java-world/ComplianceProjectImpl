@@ -17,10 +17,10 @@ class MCodeRepositoryImpl(
 ) : MCodeRepository {
 
     private val M_CODE: Table<Record> = DSL.table("M_CODE")
-    private val CODE_ID: Field<Long> = DSL.field("code_id", Long::class.java)
     private val CODE_CATEGORY: Field<String> = DSL.field("code_category", String::class.java)
     private val CODE: Field<String> = DSL.field("code", String::class.java)
-    private val NAME: Field<String> = DSL.field("name", String::class.java)
+    private val CODE_DIVISION: Field<String> = DSL.field("code_division", String::class.java)
+    private val CODE_NAME: Field<String> = DSL.field("code_name", String::class.java)
     private val DESCRIPTION: Field<String> = DSL.field("description", String::class.java)
     private val DISPLAY_ORDER: Field<Int> = DSL.field("display_order", Int::class.java)
     private val IS_ACTIVE: Field<Boolean> = DSL.field("is_active", Boolean::class.java)
@@ -55,10 +55,10 @@ class MCodeRepositoryImpl(
 
     private fun map(record: Record): MCode {
         return MCode(
-            codeId = record.get(CODE_ID),
             codeCategory = record.get(CODE_CATEGORY),
             code = record.get(CODE),
-            name = record.get(NAME),
+            codeDivision = record.get(CODE_DIVISION),
+            name = record.get(CODE_NAME),
             description = record.get(DESCRIPTION),
             displayOrder = record.get(DISPLAY_ORDER),
             isActive = record.get(IS_ACTIVE),

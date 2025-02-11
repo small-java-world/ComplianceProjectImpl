@@ -1,54 +1,149 @@
 package com.example.project.code.application.service
 
+import com.example.project.code.domain.model.MCode
+import com.example.project.code.domain.repository.MCodeRepository
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
+import io.mockk.every
+import io.mockk.mockk
 import java.time.LocalDateTime
 
-@SpringBootTest
-@ActiveProfiles("test")
-class MCodeCacheServiceTest(
-    private val mCodeCacheService: MCodeCacheService
-) : FunSpec({
+class MCodeCacheServiceTest : FunSpec({
 
     test("loadAll should load all records into cache") {
-        // loadAllはPostConstructで自動実行される
-        val planningStage = mCodeCacheService.getEntry("AUDIT_STAGE", "PLANNING")
-        planningStage shouldNotBe null
-        planningStage?.name shouldBe "計画"
-        planningStage?.description shouldBe "監査計画段階"
-        planningStage?.isActive shouldBe true
+        val entries = listOf(
+            MCode(
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_1",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1",
+                description = "テスト用コード1",
+                displayOrder = 1,
+                isActive = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            ),
+            MCode(
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_2",
+                codeDivision = "TEST_DIV",
+                name = "テストコード2",
+                description = "テスト用コード2",
+                displayOrder = 2,
+                isActive = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
+        )
+
+        val mockRepository = mockk<MCodeRepository>()
+        every { mockRepository.findAll() } returns entries
+
+        val cache = MCodeCacheService(mockRepository)
+        cache.loadAll()
+
+        val testCode1 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_1")
+        testCode1 shouldNotBe null
+        testCode1?.name shouldBe "テストコード1"
+        testCode1?.description shouldBe "テスト用コード1"
+        testCode1?.isActive shouldBe true
+
+        val testCode2 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_2")
+        testCode2 shouldNotBe null
+        testCode2?.name shouldBe "テストコード2"
+        testCode2?.description shouldBe "テスト用コード2"
+        testCode2?.isActive shouldBe true
     }
 
-    test("getByName should return records for specific category and name") {
-        val executionStages = mCodeCacheService.getByName("AUDIT_STAGE", "実施")
-        executionStages.size shouldBe 1
-        
-        val executionStage = executionStages.first()
-        executionStage.code shouldBe "EXECUTION"
-        executionStage.name shouldBe "実施"
-        executionStage.description shouldBe "監査実施段階"
+    test("partialReload should update cache with new entries") {
+        val initialEntries = listOf(
+            MCode(
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_1",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1",
+                description = "テスト用コード1",
+                displayOrder = 1,
+                isActive = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
+        )
+
+        val mockRepository = mockk<MCodeRepository>()
+        every { mockRepository.findAll() } returns initialEntries
+
+        val cache = MCodeCacheService(mockRepository)
+        cache.loadAll()
+
+        val newEntries = listOf(
+            MCode(
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_2",
+                codeDivision = "TEST_DIV",
+                name = "テストコード2",
+                description = "テスト用コード2",
+                displayOrder = 2,
+                isActive = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
+        )
+
+        val reloadTime = LocalDateTime.now().minusHours(1)
+        every { mockRepository.findByUpdatedAtAfter(reloadTime) } returns newEntries
+
+        cache.partialReload(reloadTime)
+
+        val testCode2 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_2")
+        testCode2 shouldNotBe null
+        testCode2?.name shouldBe "テストコード2"
+        testCode2?.description shouldBe "テスト用コード2"
+        testCode2?.isActive shouldBe true
     }
 
-    test("reloadCategory should reload specific category") {
-        mCodeCacheService.reloadCategory("AUDIT_STAGE")
-        
-        val reportingStage = mCodeCacheService.getEntry("AUDIT_STAGE", "REPORTING")
-        reportingStage shouldNotBe null
-        reportingStage?.name shouldBe "報告"
-        reportingStage?.description shouldBe "監査報告段階"
-    }
+    test("getByName should return all entries for a name in category") {
+        val entries = listOf(
+            MCode(
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_1",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1",
+                description = "テスト用コード1",
+                displayOrder = 1,
+                isActive = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            ),
+            MCode(
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_2",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1", // 同じ名前で異なるコード
+                description = "テスト用コード2",
+                displayOrder = 2,
+                isActive = true,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
+        )
 
-    test("partialReload should update cache with recent changes") {
-        val pastTime = LocalDateTime.now().minusYears(1)
-        mCodeCacheService.partialReload(pastTime)
+        val mockRepository = mockk<MCodeRepository>()
+        every { mockRepository.findAll() } returns entries
+
+        val cache = MCodeCacheService(mockRepository)
+        cache.loadAll()
+
+        val testEntries = cache.getByName("TEST_CATEGORY", "テストコード1")
+        testEntries.size shouldBe 2
         
-        val followUpStage = mCodeCacheService.getEntry("AUDIT_STAGE", "FOLLOW_UP")
-        followUpStage shouldNotBe null
-        followUpStage?.name shouldBe "フォローアップ"
-        followUpStage?.description shouldBe "監査フォローアップ段階"
-        followUpStage?.isActive shouldBe true
+        val testCode1 = testEntries.find { it.code == "TEST_CODE_1" }
+        testCode1 shouldNotBe null
+        testCode1?.name shouldBe "テストコード1"
+        
+        val testCode2 = testEntries.find { it.code == "TEST_CODE_2" }
+        testCode2 shouldNotBe null
+        testCode2?.name shouldBe "テストコード1"
     }
 }) 

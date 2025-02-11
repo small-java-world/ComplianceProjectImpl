@@ -15,22 +15,22 @@ class MCodeCacheTest : FunSpec({
     test("loadAll should populate cache with provided entries") {
         val entries = listOf(
             MCode(
-                codeId = 1L,
-                codeCategory = "ROLE",
-                code = "ADMIN",
-                name = "管理者",
-                description = "システム管理者権限を持つユーザー",
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_1",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1",
+                description = "テスト用コード1",
                 displayOrder = 1,
                 isActive = true,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             ),
             MCode(
-                codeId = 2L,
-                codeCategory = "ROLE",
-                code = "USER",
-                name = "一般ユーザー",
-                description = "一般的なユーザー権限",
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_2",
+                codeDivision = "TEST_DIV",
+                name = "テストコード2",
+                description = "テスト用コード2",
                 displayOrder = 2,
                 isActive = true,
                 createdAt = LocalDateTime.now(),
@@ -44,27 +44,27 @@ class MCodeCacheTest : FunSpec({
         val cache = MCodeCacheService(mockRepository)
         cache.loadAll()
 
-        val adminRole = cache.getEntry("ROLE", "ADMIN")
-        adminRole shouldNotBe null
-        adminRole?.name shouldBe "管理者"
-        adminRole?.description shouldBe "システム管理者権限を持つユーザー"
-        adminRole?.isActive shouldBe true
+        val testCode1 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_1")
+        testCode1 shouldNotBe null
+        testCode1?.name shouldBe "テストコード1"
+        testCode1?.description shouldBe "テスト用コード1"
+        testCode1?.isActive shouldBe true
 
-        val userRole = cache.getEntry("ROLE", "USER")
-        userRole shouldNotBe null
-        userRole?.name shouldBe "一般ユーザー"
-        userRole?.description shouldBe "一般的なユーザー権限"
-        userRole?.isActive shouldBe true
+        val testCode2 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_2")
+        testCode2 shouldNotBe null
+        testCode2?.name shouldBe "テストコード2"
+        testCode2?.description shouldBe "テスト用コード2"
+        testCode2?.isActive shouldBe true
     }
 
     test("partialReload should update cache with new entries") {
         val initialEntries = listOf(
             MCode(
-                codeId = 1L,
-                codeCategory = "ROLE",
-                code = "ADMIN",
-                name = "管理者",
-                description = "システム管理者権限を持つユーザー",
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_1",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1",
+                description = "テスト用コード1",
                 displayOrder = 1,
                 isActive = true,
                 createdAt = LocalDateTime.now(),
@@ -80,11 +80,11 @@ class MCodeCacheTest : FunSpec({
 
         val newEntries = listOf(
             MCode(
-                codeId = 2L,
-                codeCategory = "ROLE",
-                code = "USER",
-                name = "一般ユーザー",
-                description = "一般的なユーザー権限",
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_2",
+                codeDivision = "TEST_DIV",
+                name = "テストコード2",
+                description = "テスト用コード2",
                 displayOrder = 2,
                 isActive = true,
                 createdAt = LocalDateTime.now(),
@@ -97,32 +97,32 @@ class MCodeCacheTest : FunSpec({
 
         cache.partialReload(reloadTime)
 
-        val userRole = cache.getEntry("ROLE", "USER")
-        userRole shouldNotBe null
-        userRole?.name shouldBe "一般ユーザー"
-        userRole?.description shouldBe "一般的なユーザー権限"
-        userRole?.isActive shouldBe true
+        val testCode2 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_2")
+        testCode2 shouldNotBe null
+        testCode2?.name shouldBe "テストコード2"
+        testCode2?.description shouldBe "テスト用コード2"
+        testCode2?.isActive shouldBe true
     }
 
     test("getByName should return all entries for a name in category") {
         val entries = listOf(
             MCode(
-                codeId = 1L,
-                codeCategory = "ROLE",
-                code = "ADMIN",
-                name = "管理者",
-                description = "システム管理者権限を持つユーザー",
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_1",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1",
+                description = "テスト用コード1",
                 displayOrder = 1,
                 isActive = true,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             ),
             MCode(
-                codeId = 2L,
-                codeCategory = "ROLE",
-                code = "USER",
-                name = "一般ユーザー",
-                description = "一般的なユーザー権限",
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE_2",
+                codeDivision = "TEST_DIV",
+                name = "テストコード1", // 同じ名前で異なるコード
+                description = "テスト用コード2",
                 displayOrder = 2,
                 isActive = true,
                 createdAt = LocalDateTime.now(),
@@ -136,11 +136,15 @@ class MCodeCacheTest : FunSpec({
         val cache = MCodeCacheService(mockRepository)
         cache.loadAll()
 
-        val roleEntries = cache.getByName("ROLE", "管理者")
-        roleEntries.size shouldBe 1
+        val testEntries = cache.getByName("TEST_CATEGORY", "テストコード1")
+        testEntries.size shouldBe 2
         
-        val adminRole = roleEntries.first()
-        adminRole.code shouldBe "ADMIN"
-        adminRole.name shouldBe "管理者"
+        val testCode1 = testEntries.find { it.code == "TEST_CODE_1" }
+        testCode1 shouldNotBe null
+        testCode1?.name shouldBe "テストコード1"
+        
+        val testCode2 = testEntries.find { it.code == "TEST_CODE_2" }
+        testCode2 shouldNotBe null
+        testCode2?.name shouldBe "テストコード1"
     }
 }) 
