@@ -653,30 +653,23 @@ tasks.register("migrateTestDatabases") {
     description = "Migrates all test databases"
     
     doLast {
-        // 本番のマイグレーションを実行
+        // テストデータベースのマイグレーション
         flyway {
             url = "jdbc:mysql://localhost:3307/code_master_db_test?allowPublicKeyRetrieval=true&useSSL=false"
-            user = "compliance_user"
-            password = "compliance_pass"
-            locations = arrayOf("classpath:db/migration/code_master_db")
+            user = "root"
+            password = "root"
+            locations = arrayOf(
+                "filesystem:src/main/resources/db/migration/code_master_db",
+                "filesystem:src/test/resources/db/testmigration/code_master_db"
+            )
             validateOnMigrate = true
             outOfOrder = false
             baselineOnMigrate = true
             cleanDisabled = false
         }
-        tasks.findByName("flywayMigrate")?.actions?.forEach { it.execute(tasks.findByName("flywayMigrate")!!) }
 
-        // テストデータの投入
-        flyway {
-            url = "jdbc:mysql://localhost:3307/code_master_db_test?allowPublicKeyRetrieval=true&useSSL=false"
-            user = "compliance_user"
-            password = "compliance_pass"
-            locations = arrayOf("classpath:db/testmigration/code_master_db")
-            validateOnMigrate = true
-            outOfOrder = false
-            baselineOnMigrate = true
-            cleanDisabled = false
-        }
+        // クリーンアップとマイグレーションを実行
+        tasks.findByName("flywayClean")?.actions?.forEach { it.execute(tasks.findByName("flywayClean")!!) }
         tasks.findByName("flywayMigrate")?.actions?.forEach { it.execute(tasks.findByName("flywayMigrate")!!) }
     }
 }
