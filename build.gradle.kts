@@ -216,7 +216,10 @@ tasks {
                     password = project.property("dbPassword").toString()
                     baselineOnMigrate = true
                     baselineVersion = "0"
-                    locations = arrayOf("classpath:db/migration/${key}")
+                    locations = arrayOf(
+                        "classpath:db/migration/${key}",
+                        "classpath:db/testmigration/${key}"
+                    )
                 }
                 project.tasks.getByName("flywayMigrate").actions.forEach { action ->
                     action.execute(project.tasks.getByName("flywayMigrate"))
