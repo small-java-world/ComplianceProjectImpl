@@ -1,18 +1,42 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3307/organization_db_test
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      data-source-properties:
-        useUnicode: true
-        characterEncoding: UTF-8
-        characterSetResults: UTF-8
-        connectionCollation: utf8mb4_unicode_ci
-        useJDBCCompliantTimezoneShift: true
-        useLegacyDatetimeCode: false
-        serverTimezone: UTC
+    organization:
+      url: jdbc:mysql://localhost:3307/organization_db_test
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    code-master:
+      url: jdbc:mysql://localhost:3307/code_master_db_test
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    document:
+      url: jdbc:mysql://localhost:3307/document_db_test
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    framework:
+      url: jdbc:mysql://localhost:3307/framework_db_test
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    audit:
+      url: jdbc:mysql://localhost:3307/audit_db_test
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    training:
+      url: jdbc:mysql://localhost:3307/training_db_test
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    pool:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
   jpa:
     open-in-view: false
     hibernate:
@@ -28,6 +52,8 @@ spring:
     locations: 
       - classpath:db/migration/organization_db
       - classpath:db/testmigration/organization_db
+      - classpath:db/migration/code_master_db
+      - classpath:db/testmigration/code_master_db
     baseline-on-migrate: true
     out-of-order: true
     validate-on-migrate: false

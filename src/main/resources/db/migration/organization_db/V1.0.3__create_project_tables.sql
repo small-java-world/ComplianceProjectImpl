@@ -12,6 +12,9 @@ CREATE TABLE compliance_project (
     CONSTRAINT fk_compliance_project_organization FOREIGN KEY (organization_id) REFERENCES organization(organization_id)
 );
 
+-- Create index for compliance_project
+CREATE INDEX idx_compliance_project_organization_id ON compliance_project(organization_id);
+
 -- project_framework table
 CREATE TABLE project_framework (
     project_framework_id VARCHAR(36)   NOT NULL,
@@ -22,4 +25,7 @@ CREATE TABLE project_framework (
     updated_at         TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT pk_project_framework PRIMARY KEY (project_framework_id),
     CONSTRAINT fk_project_framework_project FOREIGN KEY (project_id) REFERENCES compliance_project(project_id)
-); 
+);
+
+-- Create index for project_framework
+CREATE INDEX idx_project_framework_project_id ON project_framework(project_id); 

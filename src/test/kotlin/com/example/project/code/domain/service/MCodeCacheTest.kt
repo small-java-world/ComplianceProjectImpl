@@ -1,8 +1,8 @@
 package com.example.project.code.domain.service
 
-import com.example.project.code.application.service.MCodeCacheService
-import com.example.project.code.domain.model.MCode
-import com.example.project.code.domain.repository.MCodeRepository
+import com.example.project.code.application.service.CodeCacheService
+import com.example.project.code.domain.model.Code
+import com.example.project.code.domain.repository.CodeRepository
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -10,11 +10,11 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDateTime
 
-class MCodeCacheTest : FunSpec({
+class CodeCacheTest : FunSpec({
 
     test("loadAll should populate cache with provided entries") {
         val entries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_1",
                 codeDivision = "TEST_DIV",
@@ -26,7 +26,7 @@ class MCodeCacheTest : FunSpec({
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             ),
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_2",
                 codeDivision = "TEST_DIV",
@@ -40,10 +40,10 @@ class MCodeCacheTest : FunSpec({
             )
         )
 
-        val mockRepository = mockk<MCodeRepository>()
+        val mockRepository = mockk<CodeRepository>()
         every { mockRepository.findAll() } returns entries
 
-        val cache = MCodeCacheService(mockRepository)
+        val cache = CodeCacheService(mockRepository)
         cache.loadAll()
 
         val testCode1 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_1")
@@ -61,7 +61,7 @@ class MCodeCacheTest : FunSpec({
 
     test("partialReload should update cache with new entries") {
         val initialEntries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_1",
                 codeDivision = "TEST_DIV",
@@ -75,14 +75,14 @@ class MCodeCacheTest : FunSpec({
             )
         )
 
-        val mockRepository = mockk<MCodeRepository>()
+        val mockRepository = mockk<CodeRepository>()
         every { mockRepository.findAll() } returns initialEntries
 
-        val cache = MCodeCacheService(mockRepository)
+        val cache = CodeCacheService(mockRepository)
         cache.loadAll()
 
         val newEntries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_2",
                 codeDivision = "TEST_DIV",
@@ -110,7 +110,7 @@ class MCodeCacheTest : FunSpec({
 
     test("getByName should return all entries for a name in category") {
         val entries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_1",
                 codeDivision = "TEST_DIV",
@@ -122,7 +122,7 @@ class MCodeCacheTest : FunSpec({
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             ),
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_2",
                 codeDivision = "TEST_DIV",
@@ -136,10 +136,10 @@ class MCodeCacheTest : FunSpec({
             )
         )
 
-        val mockRepository = mockk<MCodeRepository>()
+        val mockRepository = mockk<CodeRepository>()
         every { mockRepository.findAll() } returns entries
 
-        val cache = MCodeCacheService(mockRepository)
+        val cache = CodeCacheService(mockRepository)
         cache.loadAll()
 
         val testEntries = cache.getByName("TEST_CATEGORY", "テストコード1")

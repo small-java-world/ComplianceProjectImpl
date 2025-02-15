@@ -1,5 +1,5 @@
 -- ComplianceFramework table
-CREATE TABLE ComplianceFramework (
+CREATE TABLE IF NOT EXISTS ComplianceFramework (
     framework_id     VARCHAR(36)   NOT NULL,
     framework_code   VARCHAR(50)   NOT NULL,
     name            VARCHAR(100)  NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE ComplianceFramework (
 );
 
 -- Requirement table
-CREATE TABLE Requirement (
+CREATE TABLE IF NOT EXISTS Requirement (
     requirement_id   VARCHAR(36)   NOT NULL,
     framework_id     VARCHAR(36)   NOT NULL,
     requirement_code VARCHAR(50)   NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE Requirement (
 );
 
 -- ImplementationTask table
-CREATE TABLE ImplementationTask (
+CREATE TABLE IF NOT EXISTS ImplementationTask (
     task_id         VARCHAR(36)   NOT NULL,
     requirement_id   VARCHAR(36)   NOT NULL,
     task_name       VARCHAR(255)  NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE ImplementationTask (
 );
 
 -- Evidence table
-CREATE TABLE Evidence (
+CREATE TABLE IF NOT EXISTS Evidence (
     evidence_id     VARCHAR(36)   NOT NULL,
     task_id         VARCHAR(36)   NOT NULL,
     evidence_type   VARCHAR(50)   NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE Evidence (
     CONSTRAINT FK_Evidence_Task FOREIGN KEY (task_id) REFERENCES ImplementationTask(task_id)
 );
 
--- Indexes
+-- Create indexes
 CREATE INDEX IDX_Requirement_FrameworkId ON Requirement(framework_id);
 CREATE INDEX IDX_Requirement_ParentId ON Requirement(parent_id);
 CREATE INDEX IDX_ImplementationTask_RequirementId ON ImplementationTask(requirement_id);

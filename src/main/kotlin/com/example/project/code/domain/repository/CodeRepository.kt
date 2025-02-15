@@ -1,11 +1,14 @@
 package com.example.project.code.domain.repository
 
 import com.example.project.code.domain.model.Code
+import java.time.LocalDateTime
 
 interface CodeRepository {
-    fun findByCodeCategory(codeCategory: String): List<Code>
-    fun findByCodeCategoryAndCode(codeCategory: String, code: String): Code?
+    fun findAll(): List<Code>
+    fun findByUpdatedAtAfter(updatedAt: LocalDateTime): List<Code>
+    fun findByCategory(category: String): List<Code>
+    fun findByCategoryAndCode(category: String, code: String): Code?
     fun save(code: Code): Code
     fun update(code: Code): Code
-    fun delete(codeCategory: String, code: String)
+    fun delete(category: String, code: String)
 } 

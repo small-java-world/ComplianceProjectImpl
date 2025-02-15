@@ -1,8 +1,9 @@
+-- Create table
 CREATE TABLE IF NOT EXISTS M_CODE (
     code_category      VARCHAR(50)  NOT NULL, 
     code               VARCHAR(50)  NOT NULL, 
     code_division      VARCHAR(50)  NOT NULL, 
-    code_name          VARCHAR(100) NOT NULL, 
+    name               VARCHAR(100) NOT NULL, 
     code_short_name    VARCHAR(50)  NULL,
     extension1         VARCHAR(100) NULL,
     extension2         VARCHAR(100) NULL,
@@ -23,7 +24,12 @@ CREATE TABLE IF NOT EXISTS M_CODE (
     is_active         BOOLEAN      NOT NULL DEFAULT true,
     description       TEXT,
     created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT PK_M_CODE PRIMARY KEY (code_category, code)
 );
+
+-- Create indexes
+CREATE INDEX idx_m_code_code_category ON M_CODE(code_category);
+CREATE INDEX idx_m_code_code ON M_CODE(code);
+CREATE INDEX idx_m_code_code_division ON M_CODE(code_division);

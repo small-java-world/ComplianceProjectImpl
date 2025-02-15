@@ -20,6 +20,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -298,5 +299,6 @@ tasks {
         useJUnitPlatform()
         systemProperty("kotest.framework.classpath.scanning.config", "true")
         systemProperty("kotest.framework.classpath.scanning.autoscan", "true")
+        jvmArgs = listOf("-XX:+EnableDynamicAgentLoading")
     }
 } 

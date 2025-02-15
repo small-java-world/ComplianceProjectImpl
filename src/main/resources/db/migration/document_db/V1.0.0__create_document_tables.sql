@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS Room (
     CONSTRAINT FK_Room_Floor FOREIGN KEY (floor_id) REFERENCES Floor(floor_id)
 );
 
--- Indexes
+-- Create indexes
 CREATE INDEX IDX_Document_ProjectId ON Document(project_id);
 CREATE INDEX IDX_Document_AuthorId ON Document(author_id);
 CREATE INDEX IDX_DocumentVersion_DocumentId ON DocumentVersion(document_id);

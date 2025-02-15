@@ -1,7 +1,7 @@
 package com.example.project.code.application.service
 
-import com.example.project.code.domain.model.MCode
-import com.example.project.code.domain.repository.MCodeRepository
+import com.example.project.code.domain.model.Code
+import com.example.project.code.domain.repository.CodeRepository
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,11 +9,11 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDateTime
 
-class MCodeCacheServiceTest : FunSpec({
+class CodeCacheServiceTest : FunSpec({
 
     test("loadAll should load all records into cache") {
         val entries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_1",
                 codeDivision = "TEST_DIV",
@@ -22,10 +22,25 @@ class MCodeCacheServiceTest : FunSpec({
                 description = "テスト用コード1",
                 displayOrder = 1,
                 isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             ),
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_2",
                 codeDivision = "TEST_DIV",
@@ -34,15 +49,30 @@ class MCodeCacheServiceTest : FunSpec({
                 description = "テスト用コード2",
                 displayOrder = 2,
                 isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             )
         )
 
-        val mockRepository = mockk<MCodeRepository>()
+        val mockRepository = mockk<CodeRepository>()
         every { mockRepository.findAll() } returns entries
 
-        val cache = MCodeCacheService(mockRepository)
+        val cache = CodeCacheService(mockRepository)
         cache.loadAll()
 
         val testCode1 = cache.getEntry("TEST_CATEGORY", "TEST_CODE_1")
@@ -60,7 +90,7 @@ class MCodeCacheServiceTest : FunSpec({
 
     test("partialReload should update cache with new entries") {
         val initialEntries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_1",
                 codeDivision = "TEST_DIV",
@@ -69,19 +99,34 @@ class MCodeCacheServiceTest : FunSpec({
                 description = "テスト用コード1",
                 displayOrder = 1,
                 isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             )
         )
 
-        val mockRepository = mockk<MCodeRepository>()
+        val mockRepository = mockk<CodeRepository>()
         every { mockRepository.findAll() } returns initialEntries
 
-        val cache = MCodeCacheService(mockRepository)
+        val cache = CodeCacheService(mockRepository)
         cache.loadAll()
 
         val newEntries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_2",
                 codeDivision = "TEST_DIV",
@@ -90,6 +135,21 @@ class MCodeCacheServiceTest : FunSpec({
                 description = "テスト用コード2",
                 displayOrder = 2,
                 isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             )
@@ -109,7 +169,7 @@ class MCodeCacheServiceTest : FunSpec({
 
     test("getByName should return all entries for a name in category") {
         val entries = listOf(
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_1",
                 codeDivision = "TEST_DIV",
@@ -118,10 +178,25 @@ class MCodeCacheServiceTest : FunSpec({
                 description = "テスト用コード1",
                 displayOrder = 1,
                 isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             ),
-            MCode(
+            Code(
                 codeCategory = "TEST_CATEGORY",
                 code = "TEST_CODE_2",
                 codeDivision = "TEST_DIV",
@@ -130,15 +205,30 @@ class MCodeCacheServiceTest : FunSpec({
                 description = "テスト用コード2",
                 displayOrder = 2,
                 isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             )
         )
 
-        val mockRepository = mockk<MCodeRepository>()
+        val mockRepository = mockk<CodeRepository>()
         every { mockRepository.findAll() } returns entries
 
-        val cache = MCodeCacheService(mockRepository)
+        val cache = CodeCacheService(mockRepository)
         cache.loadAll()
 
         val testEntries = cache.getByName("TEST_CATEGORY", "テストコード1")

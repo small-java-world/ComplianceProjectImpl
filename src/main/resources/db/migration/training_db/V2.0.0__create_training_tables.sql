@@ -1,5 +1,5 @@
 -- TrainingProgram table
-CREATE TABLE IF NOT EXISTS TrainingProgram (
+CREATE TABLE TrainingProgram (
     program_id      VARCHAR(36)   NOT NULL,
     title           VARCHAR(200)  NOT NULL,
     description     TEXT         NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS TrainingProgram (
 );
 
 -- TrainingMaterial table
-CREATE TABLE IF NOT EXISTS TrainingMaterial (
+CREATE TABLE TrainingMaterial (
     material_id     VARCHAR(36)   NOT NULL,
     program_id      VARCHAR(36)   NOT NULL,
     title           VARCHAR(200)  NOT NULL,
@@ -24,8 +24,22 @@ CREATE TABLE IF NOT EXISTS TrainingMaterial (
     CONSTRAINT FK_TrainingMaterial_Program FOREIGN KEY (program_id) REFERENCES TrainingProgram(program_id)
 );
 
+-- TrainingSchedule table
+CREATE TABLE TrainingSchedule (
+    schedule_id     VARCHAR(36)   NOT NULL,
+    program_id      VARCHAR(36)   NOT NULL,
+    start_datetime  DATETIME     NOT NULL,
+    end_datetime    DATETIME     NOT NULL,
+    location        VARCHAR(200) NULL,
+    max_participants INT         NULL,
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT PK_TrainingSchedule PRIMARY KEY (schedule_id),
+    CONSTRAINT FK_TrainingSchedule_Program FOREIGN KEY (program_id) REFERENCES TrainingProgram(program_id)
+);
+
 -- TrainingParticipant table
-CREATE TABLE IF NOT EXISTS TrainingParticipant (
+CREATE TABLE TrainingParticipant (
     participant_id  VARCHAR(36)   NOT NULL,
     program_id      VARCHAR(36)   NOT NULL,
     user_id         VARCHAR(36)   NOT NULL,
@@ -39,7 +53,7 @@ CREATE TABLE IF NOT EXISTS TrainingParticipant (
 );
 
 -- TrainingFeedback table
-CREATE TABLE IF NOT EXISTS TrainingFeedback (
+CREATE TABLE TrainingFeedback (
     feedback_id     VARCHAR(36)   NOT NULL,
     participant_id  VARCHAR(36)   NOT NULL,
     rating          INT          NOT NULL,
@@ -51,7 +65,7 @@ CREATE TABLE IF NOT EXISTS TrainingFeedback (
 );
 
 -- TrainingRecord table
-CREATE TABLE IF NOT EXISTS TrainingRecord (
+CREATE TABLE TrainingRecord (
     training_record_id  VARCHAR(36)   NOT NULL,
     training_program_id VARCHAR(36)   NOT NULL,
     user_id            VARCHAR(36)   NOT NULL,

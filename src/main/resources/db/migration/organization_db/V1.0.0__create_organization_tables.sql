@@ -1,5 +1,5 @@
 -- Organization table
-CREATE TABLE organization (
+CREATE TABLE IF NOT EXISTS organization (
     organization_id    VARCHAR(36)   NOT NULL,
     name              VARCHAR(100)   NOT NULL,
     organization_code VARCHAR(50)    NOT NULL,
@@ -19,9 +19,12 @@ CREATE TABLE IF NOT EXISTS department (
     created_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT pk_department PRIMARY KEY (department_id),
-    CONSTRAINT fk_department_organization FOREIGN KEY (organization_id) REFERENCES organization(organization_id),
-    CONSTRAINT fk_department_parent FOREIGN KEY (parent_id) REFERENCES department(department_id)
+    CONSTRAINT fk_department_organization FOREIGN KEY (organization_id) REFERENCES organization(organization_id)
 );
+
+-- Add self-referential foreign key for department
+ALTER TABLE department
+ADD CONSTRAINT fk_department_parent FOREIGN KEY (parent_id) REFERENCES department(department_id);
 
 -- User table
 CREATE TABLE IF NOT EXISTS user (
@@ -67,7 +70,7 @@ CREATE TABLE IF NOT EXISTS permission_detail_department (
         REFERENCES department(department_id)
 );
 
--- Indexes
+-- Create indexes
 CREATE INDEX idx_user_department_id ON user(department_id);
 CREATE INDEX idx_department_organization_id ON department(organization_id);
 CREATE INDEX idx_department_parent_id ON department(parent_id);

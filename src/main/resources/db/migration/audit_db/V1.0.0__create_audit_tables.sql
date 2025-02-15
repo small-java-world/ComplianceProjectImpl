@@ -1,5 +1,5 @@
 -- Audit table
-CREATE TABLE Audit (
+CREATE TABLE IF NOT EXISTS Audit (
     audit_id        VARCHAR(36)   NOT NULL,
     project_id      VARCHAR(36)   NOT NULL,
     audit_type      VARCHAR(50)   NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE Audit (
 );
 
 -- AssessmentReport table
-CREATE TABLE AssessmentReport (
+CREATE TABLE IF NOT EXISTS AssessmentReport (
     report_id       VARCHAR(36)   NOT NULL,
     audit_id        VARCHAR(36)   NOT NULL,
     report_type     VARCHAR(50)   NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE AssessmentReport (
 );
 
 -- NonConformity table
-CREATE TABLE NonConformity (
+CREATE TABLE IF NOT EXISTS NonConformity (
     nonconformity_id VARCHAR(36)   NOT NULL,
     audit_id         VARCHAR(36)   NOT NULL,
     requirement_id   VARCHAR(36)   NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE NonConformity (
 );
 
 -- CorrectiveAction table
-CREATE TABLE CorrectiveAction (
+CREATE TABLE IF NOT EXISTS CorrectiveAction (
     action_id           VARCHAR(36)   NOT NULL,
     nonconformity_id    VARCHAR(36)   NOT NULL,
     action_description  TEXT          NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE CorrectiveAction (
     CONSTRAINT FK_CorrectiveAction_NonConformity FOREIGN KEY (nonconformity_id) REFERENCES NonConformity(nonconformity_id)
 );
 
--- Indexes
+-- Create indexes
 CREATE INDEX IDX_Audit_ProjectId ON Audit(project_id);
 CREATE INDEX IDX_Audit_LeadAuditorId ON Audit(lead_auditor_id);
 CREATE INDEX IDX_AssessmentReport_AuditId ON AssessmentReport(audit_id);
