@@ -12,8 +12,8 @@ data class Permission(
     val accessLevel: String,
     val departmentScope: DepartmentScope,
     val specificDepartments: List<String> = emptyList(),
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 ) {
     fun canAccess(targetDepartmentId: String, userDepartmentId: String): Boolean {
         return when (departmentScope) {

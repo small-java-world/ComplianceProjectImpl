@@ -1,5 +1,5 @@
 -- Document table
-CREATE TABLE IF NOT TABLE Document (
+CREATE TABLE IF NOT EXISTS Document (
     document_id     VARCHAR(36)   NOT NULL,
     project_id      VARCHAR(36)   NOT NULL,
     document_type   VARCHAR(50)   NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT TABLE Document (
 );
 
 -- DocumentVersion table
-CREATE TABLE IF NOT TABLE  DocumentVersion (
+CREATE TABLE IF NOT EXISTS DocumentVersion (
     version_id      VARCHAR(36)   NOT NULL,
     document_id     VARCHAR(36)   NOT NULL,
     version_number  VARCHAR(20)   NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT TABLE  DocumentVersion (
 );
 
 -- ApprovalWorkflow table
-CREATE TABLE IF NOT TABLE  ApprovalWorkflow (
+CREATE TABLE IF NOT EXISTS ApprovalWorkflow (
     workflow_id     VARCHAR(36)   NOT NULL,
     document_id     VARCHAR(36)   NOT NULL,
     version_id      VARCHAR(36)   NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT TABLE  ApprovalWorkflow (
 );
 
 -- Asset table
-CREATE TABLE IF NOT TABLE  Asset (
+CREATE TABLE IF NOT EXISTS Asset (
     asset_id        VARCHAR(36)   NOT NULL,
     asset_type      VARCHAR(50)   NOT NULL,
     name            VARCHAR(255)  NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT TABLE  Asset (
 );
 
 -- AssetOwner table
-CREATE TABLE IF NOT TABLE  AssetOwner (
+CREATE TABLE IF NOT EXISTS AssetOwner (
     owner_id        VARCHAR(36)   NOT NULL,
     asset_id        VARCHAR(36)   NOT NULL,
     user_id         VARCHAR(36)   NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT TABLE  AssetOwner (
 );
 
 -- Building table
-CREATE TABLE IF NOT TABLE  Building (
+CREATE TABLE IF NOT EXISTS Building (
     building_id     VARCHAR(36)   NOT NULL,
     name            VARCHAR(100)  NOT NULL,
     address         TEXT          NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT TABLE  Building (
 );
 
 -- Floor table
-CREATE TABLE IF NOT TABLE  Floor (
+CREATE TABLE IF NOT EXISTS Floor (
     floor_id        VARCHAR(36)   NOT NULL,
     building_id     VARCHAR(36)   NOT NULL,
     floor_number    INT           NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT TABLE  Floor (
 );
 
 -- Room table
-CREATE TABLE IF NOT TABLE  Room (
+CREATE TABLE IF NOT EXISTS Room (
     room_id         VARCHAR(36)   NOT NULL,
     floor_id        VARCHAR(36)   NOT NULL,
     room_number     VARCHAR(50)   NOT NULL,

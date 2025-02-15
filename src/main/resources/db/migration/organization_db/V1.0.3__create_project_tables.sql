@@ -1,5 +1,5 @@
--- ComplianceProject table
-CREATE TABLE ComplianceProject (
+-- compliance_project table
+CREATE TABLE compliance_project (
     project_id       VARCHAR(36)   NOT NULL,
     organization_id  VARCHAR(36)   NOT NULL,
     project_name     VARCHAR(100)  NOT NULL,
@@ -8,18 +8,18 @@ CREATE TABLE ComplianceProject (
     end_date         DATE         NULL,
     created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_ComplianceProject PRIMARY KEY (project_id),
-    CONSTRAINT FK_ComplianceProject_Organization FOREIGN KEY (organization_id) REFERENCES Organization(organization_id)
+    CONSTRAINT pk_compliance_project PRIMARY KEY (project_id),
+    CONSTRAINT fk_compliance_project_organization FOREIGN KEY (organization_id) REFERENCES organization(organization_id)
 );
 
--- ProjectFramework table
-CREATE TABLE ProjectFramework (
+-- project_framework table
+CREATE TABLE project_framework (
     project_framework_id VARCHAR(36)   NOT NULL,
     project_id          VARCHAR(36)   NOT NULL,
     framework_code      VARCHAR(50)   NOT NULL,
     framework_version   VARCHAR(20)   NULL,
     created_at         TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_ProjectFramework PRIMARY KEY (project_framework_id),
-    CONSTRAINT FK_ProjectFramework_Project FOREIGN KEY (project_id) REFERENCES ComplianceProject(project_id)
+    CONSTRAINT pk_project_framework PRIMARY KEY (project_framework_id),
+    CONSTRAINT fk_project_framework_project FOREIGN KEY (project_id) REFERENCES compliance_project(project_id)
 ); 

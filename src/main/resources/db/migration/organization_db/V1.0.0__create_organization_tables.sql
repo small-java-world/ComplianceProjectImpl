@@ -1,16 +1,16 @@
 -- Organization table
-CREATE TABLE Organization (
+CREATE TABLE organization (
     organization_id    VARCHAR(36)   NOT NULL,
     name              VARCHAR(100)   NOT NULL,
     organization_code VARCHAR(50)    NOT NULL,
     description       TEXT          NULL,
     created_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_Organization PRIMARY KEY (organization_id)
+    CONSTRAINT pk_organization PRIMARY KEY (organization_id)
 );
 
 -- Department table
-CREATE TABLE IF NOT EXISTS Department (
+CREATE TABLE IF NOT EXISTS department (
     department_id    VARCHAR(36)   NOT NULL,
     organization_id  VARCHAR(36)   NOT NULL,
     parent_id        VARCHAR(36)   NULL,
@@ -18,13 +18,13 @@ CREATE TABLE IF NOT EXISTS Department (
     department_code  VARCHAR(50)   NOT NULL,
     created_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_Department PRIMARY KEY (department_id),
-    CONSTRAINT FK_Department_Organization FOREIGN KEY (organization_id) REFERENCES Organization(organization_id),
-    CONSTRAINT FK_Department_Parent FOREIGN KEY (parent_id) REFERENCES Department(department_id)
+    CONSTRAINT pk_department PRIMARY KEY (department_id),
+    CONSTRAINT fk_department_organization FOREIGN KEY (organization_id) REFERENCES organization(organization_id),
+    CONSTRAINT fk_department_parent FOREIGN KEY (parent_id) REFERENCES department(department_id)
 );
 
 -- User table
-CREATE TABLE IF NOT EXISTS User (
+CREATE TABLE IF NOT EXISTS user (
     user_id         VARCHAR(36)   NOT NULL,
     department_id   VARCHAR(36)   NOT NULL,
     username        VARCHAR(255)  NOT NULL,
@@ -33,12 +33,12 @@ CREATE TABLE IF NOT EXISTS User (
     role_code       VARCHAR(50)   NOT NULL,
     created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_User PRIMARY KEY (user_id),
-    CONSTRAINT FK_User_Department FOREIGN KEY (department_id) REFERENCES Department(department_id)
+    CONSTRAINT pk_user PRIMARY KEY (user_id),
+    CONSTRAINT fk_user_department FOREIGN KEY (department_id) REFERENCES department(department_id)
 );
 
 -- PermissionDetail table
-CREATE TABLE IF NOT EXISTS PermissionDetail (
+CREATE TABLE IF NOT EXISTS permission_detail (
     permission_detail_id BIGINT AUTO_INCREMENT NOT NULL,
     permission_id        VARCHAR(36)   NOT NULL,
     user_id             VARCHAR(36)   NOT NULL,
@@ -48,32 +48,32 @@ CREATE TABLE IF NOT EXISTS PermissionDetail (
     department_scope    VARCHAR(50)   NOT NULL,
     created_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_PermissionDetail PRIMARY KEY (permission_detail_id),
-    CONSTRAINT FK_PermissionDetail_User FOREIGN KEY (user_id) REFERENCES User(user_id)
+    CONSTRAINT pk_permission_detail PRIMARY KEY (permission_detail_id),
+    CONSTRAINT fk_permission_detail_user FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
 -- PermissionDetail_Department table
-CREATE TABLE IF NOT EXISTS PermissionDetail_Department (
+CREATE TABLE IF NOT EXISTS permission_detail_department (
     permission_detail_id BIGINT       NOT NULL,
     department_id        VARCHAR(36)   NOT NULL,
     created_at           TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at           TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_PermissionDetail_Department PRIMARY KEY (permission_detail_id, department_id),
-    CONSTRAINT FK_PermissionDetail_Department_Permission 
+    CONSTRAINT pk_permission_detail_department PRIMARY KEY (permission_detail_id, department_id),
+    CONSTRAINT fk_permission_detail_department_permission 
         FOREIGN KEY (permission_detail_id) 
-        REFERENCES PermissionDetail(permission_detail_id),
-    CONSTRAINT FK_PermissionDetail_Department_Department
+        REFERENCES permission_detail(permission_detail_id),
+    CONSTRAINT fk_permission_detail_department_department
         FOREIGN KEY (department_id) 
-        REFERENCES Department(department_id)
+        REFERENCES department(department_id)
 );
 
 -- Indexes
-CREATE INDEX IDX_User_DepartmentId ON User(department_id);
-CREATE INDEX IDX_Department_OrganizationId ON Department(organization_id);
-CREATE INDEX IDX_Department_ParentId ON Department(parent_id);
-CREATE INDEX IDX_PermissionDetail_UserId ON PermissionDetail(user_id);
-CREATE INDEX IDX_PermissionDetail_PermissionId ON PermissionDetail(permission_id);
-CREATE INDEX IDX_PermissionDetail_Department_PermissionDetailId 
-    ON PermissionDetail_Department(permission_detail_id);
-CREATE INDEX IDX_PermissionDetail_Department_DepartmentId 
-    ON PermissionDetail_Department(department_id); 
+CREATE INDEX idx_user_department_id ON user(department_id);
+CREATE INDEX idx_department_organization_id ON department(organization_id);
+CREATE INDEX idx_department_parent_id ON department(parent_id);
+CREATE INDEX idx_permission_detail_user_id ON permission_detail(user_id);
+CREATE INDEX idx_permission_detail_permission_id ON permission_detail(permission_id);
+CREATE INDEX idx_permission_detail_department_permission_detail_id 
+    ON permission_detail_department(permission_detail_id);
+CREATE INDEX idx_permission_detail_department_department_id 
+    ON permission_detail_department(department_id); 

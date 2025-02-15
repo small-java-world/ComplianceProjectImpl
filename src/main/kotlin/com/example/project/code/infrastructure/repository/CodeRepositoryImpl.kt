@@ -2,7 +2,7 @@ package com.example.project.code.infrastructure.repository
 
 import com.example.project.code.domain.model.Code
 import com.example.project.code.domain.repository.CodeRepository
-import com.example.project.jooq.tables.references.MCODE
+import com.example.project.jooq.tables.MCode.Companion.M_CODE
 import com.example.project.jooq.tables.records.MCodeRecord
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
@@ -13,7 +13,7 @@ class CodeRepositoryImpl(
     private val dsl: DSLContext
 ) : CodeRepository {
 
-    private val m = MCODE
+    private val m = M_CODE
 
     override fun findByCodeCategory(codeCategory: String): List<Code> {
         return dsl.selectFrom(m)
@@ -27,7 +27,7 @@ class CodeRepositoryImpl(
         return dsl.selectFrom(m)
             .where(
                 m.CODE_CATEGORY.eq(codeCategory)
-                    .and(m.CODE_DIVISION.eq(code))
+                    .and(m.CODE.eq(code))
             )
             .fetchOne()
             ?.toCode()
@@ -37,7 +37,8 @@ class CodeRepositoryImpl(
         val now = LocalDateTime.now()
         dsl.insertInto(m)
             .set(m.CODE_CATEGORY, code.codeCategory)
-            .set(m.CODE_DIVISION, code.code)
+            .set(m.CODE, code.code)
+            .set(m.CODE_DIVISION, code.codeDivision)
             .set(m.CODE_NAME, code.codeName)
             .set(m.CODE_SHORT_NAME, code.codeShortName)
             .set(m.EXTENSION1, code.extension1)
@@ -91,7 +92,7 @@ class CodeRepositoryImpl(
             .set(m.UPDATED_AT, now)
             .where(
                 m.CODE_CATEGORY.eq(code.codeCategory)
-                    .and(m.CODE_DIVISION.eq(code.code))
+                    .and(m.CODE.eq(code.code))
             )
             .execute()
 
@@ -102,17 +103,17 @@ class CodeRepositoryImpl(
         dsl.deleteFrom(m)
             .where(
                 m.CODE_CATEGORY.eq(codeCategory)
-                    .and(m.CODE_DIVISION.eq(code))
+                    .and(m.CODE.eq(code))
             )
             .execute()
     }
 
     private fun MCodeRecord.toCode(): Code {
         return Code(
-            codeCategory = codeCategory,
-            code = codeDivision,
-            codeDivision = codeDivision,
-            codeName = codeName,
+            codeCategory = codeCategory!!,
+            code = code!!,
+            codeDivision = codeDivision!!,
+            codeName = codeName!!,
             codeShortName = codeShortName,
             extension1 = extension1,
             extension2 = extension2,
@@ -129,11 +130,11 @@ class CodeRepositoryImpl(
             extension13 = extension13,
             extension14 = extension14,
             extension15 = extension15,
-            displayOrder = displayOrder,
-            isActive = isActive,
+            displayOrder = displayOrder!!,
+            isActive = isActive!!,
             description = description,
-            createdAt = createdAt,
-            updatedAt = updatedAt
+            createdAt = createdAt!!,
+            updatedAt = updatedAt!!
         )
     }
 } 

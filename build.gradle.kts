@@ -48,15 +48,15 @@ dependencies {
     // Database
     implementation("org.flywaydb:flyway-core:9.22.3")
     implementation("org.flywaydb:flyway-mysql:9.22.3")
-    runtimeOnly("com.mysql:mysql-connector-j:8.0.33")
+    implementation("com.mysql:mysql-connector-j:8.0.33")
     implementation("org.jooq:jooq:3.19.1")
     implementation("org.jooq:jooq-meta:3.19.1")
     implementation("org.jooq:jooq-codegen:3.19.1")
     jooqGenerator("com.mysql:mysql-connector-j:8.0.33")
 
     // JDBC driver
-    add("jdbcDriver", "com.mysql:mysql-connector-j:8.0.33")
-    implementation("com.mysql:mysql-connector-j:8.0.33")
+    "jdbcDriver"("com.mysql:mysql-connector-j:8.0.33")
+    runtimeOnly("com.mysql:mysql-connector-j:8.0.33")
 
     // AWS SDK for S3/MinIO
     implementation("software.amazon.awssdk:s3:2.22.12")
@@ -123,7 +123,7 @@ jooq {
             jooqConfiguration.apply {
                 jdbc.apply {
                     driver = "com.mysql.cj.jdbc.Driver"
-                    url = "jdbc:mysql://${project.property("dbHost")}:${project.property("dbPort")}/${project.property("dbCodeMasterTest")}"
+                    url = "jdbc:mysql://${project.property("dbHost")}:3307/${project.property("dbCodeMasterTest")}"
                     user = project.property("dbUsername").toString()
                     password = project.property("dbPassword").toString()
                 }
@@ -175,12 +175,12 @@ tasks {
             Thread.currentThread().contextClassLoader = classLoader
 
             val driver = "com.mysql.cj.jdbc.Driver"
-            val baseUrl = "jdbc:mysql://${project.property("dbHost")}:${project.property("dbPort")}"
-            val user = project.property("dbUsername").toString()
-            val password = project.property("dbPassword").toString()
+            val baseUrl = "jdbc:mysql://localhost:3307"
+            val user = "root"
+            val password = "root"
 
             try {
-                Class.forName(driver, true, classLoader)
+                Class.forName(driver)
                 val connection = DriverManager.getConnection(baseUrl, user, password)
                 connection.use { conn ->
                     val statement = conn.createStatement()
@@ -220,8 +220,8 @@ tasks {
                     baselineOnMigrate = true
                     baselineVersion = "0"
                     locations = arrayOf(
-                        "classpath:db/migration/${key}",
-                        "classpath:db/testmigration/${key}"
+                        "filesystem:src/main/resources/db/migration/${key}",
+                        "filesystem:src/test/resources/db/testmigration/${key}"
                     )
                 }
                 project.tasks.getByName("flywayMigrate").actions.forEach { action ->
@@ -292,5 +292,11 @@ tasks {
             freeCompilerArgs += "-Xjsr305=strict"
             jvmTarget = "21"
         }
+    }
+
+    withType<Test> {
+        useJUnitPlatform()
+        systemProperty("kotest.framework.classpath.scanning.config", "true")
+        systemProperty("kotest.framework.classpath.scanning.autoscan", "true")
     }
 } 

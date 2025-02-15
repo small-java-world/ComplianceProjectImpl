@@ -1,5 +1,5 @@
 -- TrainingProgram table
-CREATE TABLE TrainingProgram (
+CREATE TABLE IF NOT EXISTS TrainingProgram (
     program_id      VARCHAR(36)   NOT NULL,
     title           VARCHAR(200)  NOT NULL,
     description     TEXT         NULL,
@@ -13,7 +13,7 @@ CREATE TABLE TrainingProgram (
 );
 
 -- TrainingMaterial table
-CREATE TABLE TrainingMaterial (
+CREATE TABLE IF NOT EXISTS TrainingMaterial (
     material_id     VARCHAR(36)   NOT NULL,
     program_id      VARCHAR(36)   NOT NULL,
     title           VARCHAR(200)  NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE TrainingMaterial (
 );
 
 -- TrainingParticipant table
-CREATE TABLE TrainingParticipant (
+CREATE TABLE IF NOT EXISTS TrainingParticipant (
     participant_id  VARCHAR(36)   NOT NULL,
     program_id      VARCHAR(36)   NOT NULL,
     user_id         VARCHAR(36)   NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE TrainingParticipant (
 );
 
 -- TrainingFeedback table
-CREATE TABLE TrainingFeedback (
+CREATE TABLE IF NOT EXISTS TrainingFeedback (
     feedback_id     VARCHAR(36)   NOT NULL,
     participant_id  VARCHAR(36)   NOT NULL,
     rating          INT          NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE TrainingFeedback (
 );
 
 -- TrainingRecord table
-CREATE TABLE TrainingRecord (
+CREATE TABLE IF NOT EXISTS TrainingRecord (
     training_record_id  VARCHAR(36)   NOT NULL,
     training_program_id VARCHAR(36)   NOT NULL,
     user_id            VARCHAR(36)   NOT NULL,

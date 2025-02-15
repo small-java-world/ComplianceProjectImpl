@@ -7,9 +7,10 @@ data class MCode(
     val code: String,
     val codeDivision: String,
     val name: String,
-    val description: String?,
+    val codeShortName: String?,
     val displayOrder: Int,
     val isActive: Boolean,
+    val description: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 ) 
