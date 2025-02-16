@@ -53,6 +53,7 @@ dependencies {
     implementation("org.jooq:jooq:3.19.1")
     implementation("org.jooq:jooq-meta:3.19.1")
     implementation("org.jooq:jooq-codegen:3.19.1")
+    implementation("com.zaxxer:HikariCP:5.1.0")
     jooqGenerator("com.mysql:mysql-connector-j:8.0.33")
 
     // JDBC driver

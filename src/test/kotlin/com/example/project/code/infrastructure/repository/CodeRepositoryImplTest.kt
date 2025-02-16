@@ -3,266 +3,384 @@ package com.example.project.code.infrastructure.repository
 import com.example.project.code.domain.model.Code
 import com.example.project.code.domain.repository.CodeRepository
 import com.example.project.config.TestConfig
+import com.example.project.jooq.CodeMasterDbTest
+import com.example.project.jooq.tables.MCode.Companion.M_CODE
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.support.DefaultTransactionDefinition
 import org.jooq.DSLContext
 import java.time.LocalDateTime
-import org.springframework.beans.factory.annotation.Qualifier
-import java.time.format.DateTimeFormatter
+import org.slf4j.LoggerFactory
 
 @SpringBootTest(classes = [TestConfig::class])
 @ActiveProfiles("test")
-@Transactional("codeMasterTransactionManager")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CodeRepositoryImplTest {
-
-    @Autowired
-    private lateinit var codeRepositoryImpl: CodeRepositoryImpl
-
-    @Autowired
-    @Qualifier("codeMasterJdbcTemplate")
-    private lateinit var jdbcTemplate: JdbcTemplate
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     @Autowired
     @Qualifier("codeMasterDslContext")
     private lateinit var dsl: DSLContext
 
-    @BeforeEach
-    fun setUp() {
-        // テストデータのクリーンアップ
-        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0")
-        jdbcTemplate.execute("TRUNCATE TABLE M_CODE")
-        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1")
-    }
+    @Autowired
+    @Qualifier("codeMasterTransactionManager")
+    private lateinit var transactionManager: PlatformTransactionManager
 
-    @Test
-    fun `カテゴリとコードで検索できること`() {
-        // テストデータの準備
-        val now = LocalDateTime.now()
-        jdbcTemplate.execute("""
-            INSERT INTO M_CODE (
-                code_category, code, code_division, name,
-                code_short_name, extension1, extension2, extension3,
-                extension4, extension5, extension6, extension7,
-                extension8, extension9, extension10, extension11,
-                extension12, extension13, extension14, extension15,
-                display_order, description, is_active,
-                created_at, updated_at
-            ) VALUES (
-                'TEST_CATEGORY', 'TEST_CODE', 'TEST_DIVISION', 'テストコード',
-                'テスト', 'ext1', 'ext2', 'ext3',
-                'ext4', 'ext5', 'ext6', 'ext7',
-                'ext8', 'ext9', 'ext10', 'ext11',
-                'ext12', 'ext13', 'ext14', 'ext15',
-                1, 'テスト説明', true,
-                '${now}', '${now}'
-            )
-        """)
+    @Autowired
+    private lateinit var codeRepositoryImpl: CodeRepositoryImpl
 
-        // テスト実行
-        val result = codeRepositoryImpl.findByCategoryAndCode("TEST_CATEGORY", "TEST_CODE")
-
-        // 検証
-        result?.let {
-            it.codeCategory shouldBe "TEST_CATEGORY"
-            it.code shouldBe "TEST_CODE"
-            it.codeDivision shouldBe "TEST_DIVISION"
-            it.name shouldBe "テストコード"
-            it.codeShortName shouldBe "テスト"
-            it.extension1 shouldBe "ext1"
-            it.extension2 shouldBe "ext2"
-            it.extension3 shouldBe "ext3"
-            it.extension4 shouldBe "ext4"
-            it.extension5 shouldBe "ext5"
-            it.extension6 shouldBe "ext6"
-            it.extension7 shouldBe "ext7"
-            it.extension8 shouldBe "ext8"
-            it.extension9 shouldBe "ext9"
-            it.extension10 shouldBe "ext10"
-            it.extension11 shouldBe "ext11"
-            it.extension12 shouldBe "ext12"
-            it.extension13 shouldBe "ext13"
-            it.extension14 shouldBe "ext14"
-            it.extension15 shouldBe "ext15"
-            it.displayOrder shouldBe 1
-            it.description shouldBe "テスト説明"
-            it.isActive shouldBe true
+    private fun createTransactionDefinition(): DefaultTransactionDefinition {
+        return DefaultTransactionDefinition().apply {
+            propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+            isolationLevel = TransactionDefinition.ISOLATION_READ_COMMITTED
+            timeout = 60
         }
     }
 
-    @Test
-    fun `新しいコードを保存できること`() {
-        // Given
-        val code = Code(
-            codeCategory = "NEW_CATEGORY",
-            code = "NEW_CODE",
-            codeDivision = "NEW_DIVISION",
-            name = "新規コード",
-            codeShortName = "新規",
-            extension1 = "new_ext1",
-            extension2 = "new_ext2",
-            extension3 = "new_ext3",
-            extension4 = "new_ext4",
-            extension5 = "new_ext5",
-            extension6 = "new_ext6",
-            extension7 = "new_ext7",
-            extension8 = "new_ext8",
-            extension9 = "new_ext9",
-            extension10 = "new_ext10",
-            extension11 = "new_ext11",
-            extension12 = "new_ext12",
-            extension13 = "new_ext13",
-            extension14 = "new_ext14",
-            extension15 = "new_ext15",
-            displayOrder = 1,
-            description = "新規コード説明",
-            isActive = true
-        )
+    private fun verifyDataInsertion(expectedCount: Int) {
+        val records = dsl.selectFrom(M_CODE).fetch()
+        logger.info("Verifying data: found ${records.size} records, expected $expectedCount")
+        records.forEach { record ->
+            logger.info("Record: category=${record.get(M_CODE.CODE_CATEGORY)}, code=${record.get(M_CODE.CODE)}")
+        }
+        if (records.size != expectedCount) {
+            throw IllegalStateException("Data verification failed. Expected $expectedCount records, but found ${records.size}")
+        }
+    }
 
-        // When
-        val savedCode = codeRepositoryImpl.save(code)
+    private fun cleanupDatabase() {
+        logger.info("Starting database cleanup")
+        val cleanupTxStatus = transactionManager.getTransaction(createTransactionDefinition())
+        try {
+            // まず現在のレコード数を確認
+            val initialRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Initial record count: ${initialRecords.size}")
 
-        // Then
-        val result = codeRepositoryImpl.findByCategoryAndCode(code.codeCategory, code.code)
-        result?.let {
-            it.codeCategory shouldBe code.codeCategory
-            it.code shouldBe code.code
-            it.codeDivision shouldBe code.codeDivision
-            it.name shouldBe code.name
-            it.codeShortName shouldBe code.codeShortName
-            it.extension1 shouldBe code.extension1
-            it.extension2 shouldBe code.extension2
-            it.extension3 shouldBe code.extension3
-            it.extension4 shouldBe code.extension4
-            it.extension5 shouldBe code.extension5
-            it.extension6 shouldBe code.extension6
-            it.extension7 shouldBe code.extension7
-            it.extension8 shouldBe code.extension8
-            it.extension9 shouldBe code.extension9
-            it.extension10 shouldBe code.extension10
-            it.extension11 shouldBe code.extension11
-            it.extension12 shouldBe code.extension12
-            it.extension13 shouldBe code.extension13
-            it.extension14 shouldBe code.extension14
-            it.extension15 shouldBe code.extension15
-            it.displayOrder shouldBe code.displayOrder
-            it.description shouldBe code.description
-            it.isActive shouldBe code.isActive
-            it.createdAt shouldNotBe null
-            it.updatedAt shouldNotBe null
+            // 外部キー制約を無効化
+            dsl.execute("SET FOREIGN_KEY_CHECKS = 0")
+            logger.info("Foreign key checks disabled")
+
+            // テーブルを切り詰める
+            dsl.execute("TRUNCATE TABLE M_CODE")
+            logger.info("Table truncated")
+
+            // 外部キー制約を再度有効化
+            dsl.execute("SET FOREIGN_KEY_CHECKS = 1")
+            logger.info("Foreign key checks enabled")
+
+            // AUTO_INCREMENTをリセット
+            dsl.execute("ALTER TABLE M_CODE AUTO_INCREMENT = 1")
+            logger.info("Auto increment reset")
+
+            // クリーンアップ後のレコード数を確認
+            val remainingRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Remaining records after cleanup: ${remainingRecords.size}")
+
+            if (remainingRecords.isNotEmpty()) {
+                logger.error("Cleanup failed: ${remainingRecords.size} records still remain")
+                remainingRecords.forEach { record ->
+                    logger.error("Remaining record: category=${record.get(M_CODE.CODE_CATEGORY)}, code=${record.get(M_CODE.CODE)}")
+                }
+                throw IllegalStateException("Cleanup failed: ${remainingRecords.size} records still remain")
+            }
+
+            transactionManager.commit(cleanupTxStatus)
+            logger.info("Cleanup transaction committed successfully")
+        } catch (e: Exception) {
+            logger.error("Error during cleanup: ${e.message}", e)
+            try {
+                transactionManager.rollback(cleanupTxStatus)
+                logger.info("Cleanup transaction rolled back")
+            } catch (rollbackEx: Exception) {
+                logger.error("Error during rollback: ${rollbackEx.message}", rollbackEx)
+            }
+            throw e
+        }
+    }
+
+    @BeforeEach
+    fun setUp() {
+        try {
+            cleanupDatabase()
+            logger.info("Database setup completed successfully")
+        } catch (e: Exception) {
+            logger.error("Error during setup: ${e.message}", e)
+            throw e
         }
     }
 
     @Test
     fun `全てのコードを取得できること`() {
-        // テストデータの準備
-        val now = LocalDateTime.now().withNano(0)
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val setupTxStatus = transactionManager.getTransaction(createTransactionDefinition())
+        logger.info("Data setup transaction started with ID: ${setupTxStatus.hashCode()}")
+        val now = LocalDateTime.now()
         
-        jdbcTemplate.execute("""
-            INSERT INTO M_CODE (
-                code_category, code, code_division, name,
-                code_short_name, extension1, extension2, extension3,
-                extension4, extension5, extension6, extension7,
-                extension8, extension9, extension10, extension11,
-                extension12, extension13, extension14, extension15,
-                display_order, description, is_active,
-                created_at, updated_at
-            ) VALUES
-            (
-                'TEST_CATEGORY_1', 'TEST_CODE_1', 'TEST_DIVISION_1', 'テストコード1',
-                'テスト1', 'ext1_1', 'ext2_1', 'ext3_1',
-                'ext4_1', 'ext5_1', 'ext6_1', 'ext7_1',
-                'ext8_1', 'ext9_1', 'ext10_1', 'ext11_1',
-                'ext12_1', 'ext13_1', 'ext14_1', 'ext15_1',
-                1, 'テスト説明1', true,
-                '${now.format(formatter)}', '${now.format(formatter)}'
-            ),
-            (
-                'TEST_CATEGORY_2', 'TEST_CODE_2', 'TEST_DIVISION_2', 'テストコード2',
-                'テスト2', 'ext1_2', 'ext2_2', 'ext3_2',
-                'ext4_2', 'ext5_2', 'ext6_2', 'ext7_2',
-                'ext8_2', 'ext9_2', 'ext10_2', 'ext11_2',
-                'ext12_2', 'ext13_2', 'ext14_2', 'ext15_2',
-                2, 'テスト説明2', true,
-                '${now.format(formatter)}', '${now.format(formatter)}'
+        try {
+            logger.info("Inserting test data...")
+            // 1つ目のテストデータ
+            val result1 = dsl.insertInto(M_CODE)
+                .set(M_CODE.CODE_CATEGORY, "TEST_CATEGORY_1")
+                .set(M_CODE.CODE, "TEST_CODE_1")
+                .set(M_CODE.CODE_DIVISION, "TEST_DIVISION_1")
+                .set(M_CODE.NAME, "テストコード1")
+                .set(M_CODE.CODE_SHORT_NAME, "テスト1")
+                .set(M_CODE.DISPLAY_ORDER, 1)
+                .set(M_CODE.DESCRIPTION, "テスト説明1")
+                .set(M_CODE.IS_ACTIVE, true)
+                .set(M_CODE.CREATED_AT, now)
+                .set(M_CODE.UPDATED_AT, now)
+                .execute()
+            logger.info("First record inserted: $result1 rows affected")
+
+            // 2つ目のテストデータ
+            val result2 = dsl.insertInto(M_CODE)
+                .set(M_CODE.CODE_CATEGORY, "TEST_CATEGORY_2")
+                .set(M_CODE.CODE, "TEST_CODE_2")
+                .set(M_CODE.CODE_DIVISION, "TEST_DIVISION_2")
+                .set(M_CODE.NAME, "テストコード2")
+                .set(M_CODE.CODE_SHORT_NAME, "テスト2")
+                .set(M_CODE.DISPLAY_ORDER, 2)
+                .set(M_CODE.DESCRIPTION, "テスト説明2")
+                .set(M_CODE.IS_ACTIVE, true)
+                .set(M_CODE.CREATED_AT, now)
+                .set(M_CODE.UPDATED_AT, now)
+                .execute()
+            logger.info("Second record inserted: $result2 rows affected")
+
+            verifyDataInsertion(2)
+            transactionManager.commit(setupTxStatus)
+            logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
+        } catch (e: Exception) {
+            logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
+            transactionManager.rollback(setupTxStatus)
+            throw e
+        }
+
+        val testTxStatus = transactionManager.getTransaction(createTransactionDefinition())
+        logger.info("Test execution transaction started with ID: ${testTxStatus.hashCode()}")
+        try {
+            logger.info("Executing test...")
+            val codes = codeRepositoryImpl.findAll()
+            logger.info("Found ${codes.size} codes in transaction ${testTxStatus.hashCode()}")
+
+            codes.size shouldBe 2
+            
+            val firstCode = codes.find { it.code == "TEST_CODE_1" }
+            firstCode shouldNotBe null
+            firstCode shouldBe Code(
+                codeCategory = "TEST_CATEGORY_1",
+                code = "TEST_CODE_1",
+                codeDivision = "TEST_DIVISION_1",
+                name = "テストコード1",
+                codeShortName = "テスト1",
+                description = "テスト説明1",
+                displayOrder = 1,
+                isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
+                createdAt = firstCode?.createdAt ?: now,
+                updatedAt = firstCode?.updatedAt ?: now
             )
-        """)
 
-        // テスト実行
-        val results = codeRepositoryImpl.findAll()
+            transactionManager.commit(testTxStatus)
+            logger.info("Test execution transaction committed with ID: ${testTxStatus.hashCode()}")
+        } catch (e: Exception) {
+            logger.error("Error during test with transaction ID ${testTxStatus.hashCode()}: ${e.message}", e)
+            transactionManager.rollback(testTxStatus)
+            throw e
+        }
+    }
 
-        // 検証
-        results.size shouldBe 2
-        results.map { it.codeCategory }.toSet() shouldBe setOf("TEST_CATEGORY_1", "TEST_CATEGORY_2")
-        results.map { it.code }.toSet() shouldBe setOf("TEST_CODE_1", "TEST_CODE_2")
-        results.map { it.displayOrder }.toSet() shouldBe setOf(1, 2)
+    @Test
+    fun `カテゴリとコードで検索できること`() {
+        val setupTxStatus = transactionManager.getTransaction(createTransactionDefinition())
+        logger.info("Data setup transaction started with ID: ${setupTxStatus.hashCode()}")
+        val now = LocalDateTime.now()
+        
+        try {
+            logger.info("Inserting test data...")
+            val result = dsl.insertInto(M_CODE)
+                .set(M_CODE.CODE_CATEGORY, "TEST_CATEGORY")
+                .set(M_CODE.CODE, "TEST_CODE")
+                .set(M_CODE.CODE_DIVISION, "TEST_DIVISION")
+                .set(M_CODE.NAME, "テストコード")
+                .set(M_CODE.CODE_SHORT_NAME, "テスト")
+                .set(M_CODE.DISPLAY_ORDER, 1)
+                .set(M_CODE.DESCRIPTION, "テスト説明")
+                .set(M_CODE.IS_ACTIVE, true)
+                .set(M_CODE.CREATED_AT, now)
+                .set(M_CODE.UPDATED_AT, now)
+                .execute()
+            logger.info("Record inserted: $result rows affected")
+
+            verifyDataInsertion(1)
+            transactionManager.commit(setupTxStatus)
+            logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
+        } catch (e: Exception) {
+            logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
+            transactionManager.rollback(setupTxStatus)
+            throw e
+        }
+
+        val testTxStatus = transactionManager.getTransaction(createTransactionDefinition())
+        logger.info("Test execution transaction started with ID: ${testTxStatus.hashCode()}")
+        try {
+            logger.info("Executing test...")
+            val code = codeRepositoryImpl.findByCategoryAndCode("TEST_CATEGORY", "TEST_CODE")
+            logger.info("Found code: ${code != null} in transaction ${testTxStatus.hashCode()}")
+
+            code shouldNotBe null
+            code shouldBe Code(
+                codeCategory = "TEST_CATEGORY",
+                code = "TEST_CODE",
+                codeDivision = "TEST_DIVISION",
+                name = "テストコード",
+                codeShortName = "テスト",
+                description = "テスト説明",
+                displayOrder = 1,
+                isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
+                createdAt = code?.createdAt ?: now,
+                updatedAt = code?.updatedAt ?: now
+            )
+
+            transactionManager.commit(testTxStatus)
+            logger.info("Test execution transaction committed with ID: ${testTxStatus.hashCode()}")
+        } catch (e: Exception) {
+            logger.error("Error during test with transaction ID ${testTxStatus.hashCode()}: ${e.message}", e)
+            transactionManager.rollback(testTxStatus)
+            throw e
+        }
     }
 
     @Test
     fun `指定した日時以降に更新されたコードを取得できること`() {
-        // テストデータの準備
-        val baseTime = LocalDateTime.now().withNano(0)
-        val beforeTime = baseTime.minusHours(1)
-        val afterTime = baseTime.plusHours(1)
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val setupTxStatus = transactionManager.getTransaction(createTransactionDefinition())
+        logger.info("Data setup transaction started with ID: ${setupTxStatus.hashCode()}")
+        val now = LocalDateTime.now()
+        val laterTime = now.plusHours(1)
         
-        // 1つ目のデータを挿入
-        jdbcTemplate.execute("""
-            INSERT INTO M_CODE (
-                code_category, code, code_division, name,
-                code_short_name, extension1, extension2, extension3,
-                extension4, extension5, extension6, extension7,
-                extension8, extension9, extension10, extension11,
-                extension12, extension13, extension14, extension15,
-                display_order, description, is_active,
-                created_at, updated_at
-            ) VALUES (
-                'TEST_CATEGORY_1', 'TEST_CODE_1', 'TEST_DIVISION_1', 'テストコード1',
-                'テスト1', 'ext1_1', 'ext2_1', 'ext3_1',
-                'ext4_1', 'ext5_1', 'ext6_1', 'ext7_1',
-                'ext8_1', 'ext9_1', 'ext10_1', 'ext11_1',
-                'ext12_1', 'ext13_1', 'ext14_1', 'ext15_1',
-                1, 'テスト説明1', true,
-                '${beforeTime.format(formatter)}', '${beforeTime.format(formatter)}'
+        try {
+            logger.info("Inserting test data...")
+            // 1つ目のテストデータ（古い更新日時）
+            val result1 = dsl.insertInto(M_CODE)
+                .set(M_CODE.CODE_CATEGORY, "TEST_CATEGORY_1")
+                .set(M_CODE.CODE, "TEST_CODE_1")
+                .set(M_CODE.CODE_DIVISION, "TEST_DIVISION_1")
+                .set(M_CODE.NAME, "テストコード1")
+                .set(M_CODE.CODE_SHORT_NAME, "テスト1")
+                .set(M_CODE.DISPLAY_ORDER, 1)
+                .set(M_CODE.DESCRIPTION, "テスト説明1")
+                .set(M_CODE.IS_ACTIVE, true)
+                .set(M_CODE.CREATED_AT, now)
+                .set(M_CODE.UPDATED_AT, now)
+                .execute()
+            logger.info("First record inserted: $result1 rows affected")
+
+            // 2つ目のテストデータ（新しい更新日時）
+            val result2 = dsl.insertInto(M_CODE)
+                .set(M_CODE.CODE_CATEGORY, "TEST_CATEGORY_2")
+                .set(M_CODE.CODE, "TEST_CODE_2")
+                .set(M_CODE.CODE_DIVISION, "TEST_DIVISION_2")
+                .set(M_CODE.NAME, "テストコード2")
+                .set(M_CODE.CODE_SHORT_NAME, "テスト2")
+                .set(M_CODE.DISPLAY_ORDER, 2)
+                .set(M_CODE.DESCRIPTION, "テスト説明2")
+                .set(M_CODE.IS_ACTIVE, true)
+                .set(M_CODE.CREATED_AT, laterTime)
+                .set(M_CODE.UPDATED_AT, laterTime)
+                .execute()
+            logger.info("Second record inserted: $result2 rows affected")
+
+            verifyDataInsertion(2)
+            transactionManager.commit(setupTxStatus)
+            logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
+        } catch (e: Exception) {
+            logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
+            transactionManager.rollback(setupTxStatus)
+            throw e
+        }
+
+        val testTxStatus = transactionManager.getTransaction(createTransactionDefinition())
+        logger.info("Test execution transaction started with ID: ${testTxStatus.hashCode()}")
+        try {
+            logger.info("Executing test...")
+            val codes = codeRepositoryImpl.findByUpdatedAtAfter(now)
+            logger.info("Found ${codes.size} codes in transaction ${testTxStatus.hashCode()}")
+
+            codes.size shouldBe 1
+            
+            val code = codes.first()
+            code shouldBe Code(
+                codeCategory = "TEST_CATEGORY_2",
+                code = "TEST_CODE_2",
+                codeDivision = "TEST_DIVISION_2",
+                name = "テストコード2",
+                codeShortName = "テスト2",
+                description = "テスト説明2",
+                displayOrder = 2,
+                isActive = true,
+                extension1 = null,
+                extension2 = null,
+                extension3 = null,
+                extension4 = null,
+                extension5 = null,
+                extension6 = null,
+                extension7 = null,
+                extension8 = null,
+                extension9 = null,
+                extension10 = null,
+                extension11 = null,
+                extension12 = null,
+                extension13 = null,
+                extension14 = null,
+                extension15 = null,
+                createdAt = code.createdAt,
+                updatedAt = code.updatedAt
             )
-        """)
 
-        // 2つ目のデータを挿入
-        jdbcTemplate.execute("""
-            INSERT INTO M_CODE (
-                code_category, code, code_division, name,
-                code_short_name, extension1, extension2, extension3,
-                extension4, extension5, extension6, extension7,
-                extension8, extension9, extension10, extension11,
-                extension12, extension13, extension14, extension15,
-                display_order, description, is_active,
-                created_at, updated_at
-            ) VALUES (
-                'TEST_CATEGORY_2', 'TEST_CODE_2', 'TEST_DIVISION_2', 'テストコード2',
-                'テスト2', 'ext1_2', 'ext2_2', 'ext3_2',
-                'ext4_2', 'ext5_2', 'ext6_2', 'ext7_2',
-                'ext8_2', 'ext9_2', 'ext10_2', 'ext11_2',
-                'ext12_2', 'ext13_2', 'ext14_2', 'ext15_2',
-                2, 'テスト説明2', true,
-                '${afterTime.format(formatter)}', '${afterTime.format(formatter)}'
-            )
-        """)
-
-        // テスト実行
-        val results = codeRepositoryImpl.findByUpdatedAtAfter(baseTime)
-
-        // 検証
-        results.size shouldBe 1
-        results[0].codeCategory shouldBe "TEST_CATEGORY_2"
-        results[0].code shouldBe "TEST_CODE_2"
-        results[0].displayOrder shouldBe 2
+            transactionManager.commit(testTxStatus)
+            logger.info("Test execution transaction committed with ID: ${testTxStatus.hashCode()}")
+        } catch (e: Exception) {
+            logger.error("Error during test with transaction ID ${testTxStatus.hashCode()}: ${e.message}", e)
+            transactionManager.rollback(testTxStatus)
+            throw e
+        }
     }
 } 

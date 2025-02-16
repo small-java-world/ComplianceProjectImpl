@@ -173,7 +173,12 @@ class TestConfig {
     @Bean
     @Qualifier("codeMasterTransactionManager")
     fun codeMasterTransactionManager(@Qualifier("codeMasterDataSource") dataSource: DataSource): PlatformTransactionManager {
-        return DataSourceTransactionManager(dataSource)
+        val transactionManager = DataSourceTransactionManager(dataSource)
+        transactionManager.isRollbackOnCommitFailure = true
+        transactionManager.defaultTimeout = 60
+        transactionManager.isValidateExistingTransaction = true
+        transactionManager.isGlobalRollbackOnParticipationFailure = true
+        return transactionManager
     }
 
     @Bean
@@ -226,6 +231,10 @@ class TestConfig {
             leakDetectionThreshold = 60000
             validationTimeout = 5000
             initializationFailTimeout = -1
+            isIsolateInternalQueries = true
+            isRegisterMbeans = true
+            keepaliveTime = 300000
+            connectionTestQuery = "SELECT 1"
         }
     }
 
@@ -249,62 +258,39 @@ class TestConfig {
             "training_db_test"
         )
 
-        val adminDataSource = createHikariDataSource(
-            url = "jdbc:mysql://localhost:3307",
-            username = "root",
-            password = "root",
-            poolName = "HikariPool-admin"
-        )
-
-        val jdbcTemplate = JdbcTemplate(adminDataSource)
-
-        // データベースの作成
-        databases.forEach { dbName ->
-            jdbcTemplate.execute("DROP DATABASE IF EXISTS $dbName")
-            jdbcTemplate.execute("""
-                CREATE DATABASE $dbName
-                CHARACTER SET utf8mb4 
-                COLLATE utf8mb4_unicode_ci
-            """)
+        val jdbcUrl = "jdbc:mysql://localhost:3307?serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true&useSSL=false"
+        val dataSource = HikariDataSource().apply {
+            this.jdbcUrl = jdbcUrl
+            username = "root"
+            password = "root"
+            driverClassName = "com.mysql.cj.jdbc.Driver"
         }
 
-        // Flywayマイグレーションの実行
-        databases.forEach { dbName ->
-            val dataSource = when (dbName) {
-                "organization_db_test" -> organizationTestDataSource()
-                "code_master_db_test" -> codeMasterTestDataSource()
-                "document_db_test" -> documentTestDataSource()
-                "framework_db_test" -> frameworkTestDataSource()
-                "audit_db_test" -> auditTestDataSource()
-                "training_db_test" -> trainingTestDataSource()
-                else -> throw IllegalArgumentException("Unknown database: $dbName")
-            }
+        val jdbcTemplate = JdbcTemplate(dataSource)
+        databases.forEach { database ->
+            jdbcTemplate.execute("DROP DATABASE IF EXISTS $database")
+            jdbcTemplate.execute("CREATE DATABASE $database")
+        }
+        dataSource.close()
 
-            val migrationLocation = when (dbName) {
-                "organization_db_test" -> "organization_db"
-                "code_master_db_test" -> "code_master_db"
-                "document_db_test" -> "document_db"
-                "framework_db_test" -> "framework_db"
-                "audit_db_test" -> "audit_db"
-                "training_db_test" -> "training_db"
-                else -> throw IllegalArgumentException("Unknown database: $dbName")
+        databases.forEach { database ->
+            val migrationDataSource = HikariDataSource().apply {
+                this.jdbcUrl = "jdbc:mysql://localhost:3307/$database?serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true&useSSL=false"
+                username = "root"
+                password = "root"
+                driverClassName = "com.mysql.cj.jdbc.Driver"
             }
 
             val flyway = Flyway.configure()
-                .dataSource(dataSource)
+                .dataSource(migrationDataSource)
                 .locations(
-                    "classpath:db/migration/$migrationLocation",
-                    "classpath:db/testmigration/$migrationLocation"
+                    "classpath:db/migration/${database.removeSuffix("_test")}",
+                    "classpath:db/testmigration/${database.removeSuffix("_test")}"
                 )
-                .baselineOnMigrate(true)
-                .baselineVersion("0")
-                .cleanDisabled(false)
                 .load()
 
-            flyway.clean()
             flyway.migrate()
+            migrationDataSource.close()
         }
-
-        adminDataSource.close()
     }
 } 
