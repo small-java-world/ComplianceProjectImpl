@@ -17,8 +17,9 @@ class PermissionService(
         return permissionRepository.findByUserId(userId).map { permission ->
             if (permission.departmentScope == DepartmentScope.SPECIFIC) {
                 permission.copy(
-                    specificDepartments = permissionDepartmentRepository
-                        .findByPermissionDetailId(permission.permissionDetailId)
+                    specificDepartments = permission.permissionDetailId?.let { id ->
+                        permissionDepartmentRepository.findByPermissionDetailId(id)
+                    } ?: emptyList()
                 )
             } else {
                 permission
@@ -31,10 +32,9 @@ class PermissionService(
         val savedPermission = permissionRepository.save(permission)
         
         if (permission.departmentScope == DepartmentScope.SPECIFIC) {
-            permissionDepartmentRepository.save(
-                savedPermission.permissionDetailId,
-                permission.specificDepartments
-            )
+            savedPermission.permissionDetailId?.let { id ->
+                permissionDepartmentRepository.save(id, permission.specificDepartments)
+            }
         }
         
         return savedPermission
@@ -45,11 +45,10 @@ class PermissionService(
         val updatedPermission = permissionRepository.update(permission)
         
         if (permission.departmentScope == DepartmentScope.SPECIFIC) {
-            permissionDepartmentRepository.delete(permission.permissionDetailId)
-            permissionDepartmentRepository.save(
-                permission.permissionDetailId,
-                permission.specificDepartments
-            )
+            permission.permissionDetailId?.let { id ->
+                permissionDepartmentRepository.delete(id)
+                permissionDepartmentRepository.save(id, permission.specificDepartments)
+            }
         }
         
         return updatedPermission
@@ -79,8 +78,9 @@ class PermissionService(
                     DepartmentScope.ANY_DEPT -> true
                     DepartmentScope.OWN_DEPT -> permission.canAccess(departmentId, userDepartmentId)
                     DepartmentScope.SPECIFIC -> {
-                        val specificDepartments = permissionDepartmentRepository
-                            .findByPermissionDetailId(permission.permissionDetailId)
+                        val specificDepartments = permission.permissionDetailId?.let { id ->
+                            permissionDepartmentRepository.findByPermissionDetailId(id)
+                        } ?: emptyList()
                         permission.copy(specificDepartments = specificDepartments)
                             .canAccess(departmentId, userDepartmentId)
                     }

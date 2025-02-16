@@ -1,10 +1,60 @@
 -- 既存のデータを削除
+SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM permission_detail_department;
 DELETE FROM permission_detail;
+DELETE FROM user;
+DELETE FROM department;
+DELETE FROM organization;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 組織データの作成
+INSERT INTO organization (
+    organization_id,
+    name,
+    organization_code,
+    description,
+    created_at,
+    updated_at
+)
+VALUES (
+    'ORG001',
+    'テスト組織1',
+    'TEST_ORG_1',
+    'テスト用組織1です。',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);
+
+-- 部門データの作成
+INSERT INTO department (
+    department_id,
+    organization_id,
+    name,
+    department_code,
+    created_at,
+    updated_at
+)
+VALUES
+('DEPT001', 'ORG001', '総務部', 'SOUMU', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('DEPT002', 'ORG001', '人事部', 'JINJI', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- ユーザーデータの作成
+INSERT INTO user (
+    user_id,
+    department_id,
+    username,
+    email,
+    password_hash,
+    role_code,
+    created_at,
+    updated_at
+)
+VALUES
+('user1', 'DEPT001', 'テストユーザー1', 'test1@example.com', 'dummy_hash', 'ROLE_USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('user2', 'DEPT002', 'テストユーザー2', 'test2@example.com', 'dummy_hash', 'ROLE_USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- permission_detail test data
 INSERT INTO permission_detail (
-    permission_detail_id,
     permission_id,
     user_id,
     permission_type,
@@ -15,17 +65,13 @@ INSERT INTO permission_detail (
     updated_at
 )
 VALUES
--- ANY_DEPT permissions for 経理部長
-(201, 'PERM_FINANCE_1', 'USER002', 'FINANCE', NULL, 'READ', 'ANY_DEPT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(202, 'PERM_FINANCE_2', 'USER002', 'FINANCE', NULL, 'WRITE', 'ANY_DEPT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+-- ANY_DEPT permissions for user1
+('PERM_TEST_1', 'user1', 'DOCUMENT', 'TARGET1', 'READ', 'ANY_DEPT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('PERM_TEST_2', 'user2', 'DOCUMENT', 'TARGET2', 'READ', 'SPECIFIC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
--- OWN_DEPT permissions for 人事課長
-(203, 'PERM_HR_1', 'USER004', 'HR', NULL, 'READ', 'OWN_DEPT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(204, 'PERM_HR_2', 'USER004', 'HR', NULL, 'WRITE', 'OWN_DEPT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-
--- SPECIFIC permissions for 開発1課長
-(205, 'PERM_DEV_1', 'USER006', 'DEVELOPMENT', NULL, 'READ', 'SPECIFIC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(206, 'PERM_DEV_2', 'USER006', 'DEVELOPMENT', NULL, 'WRITE', 'SPECIFIC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+-- Get the permission_detail_id values
+SET @perm_id_1 = LAST_INSERT_ID();
+SET @perm_id_2 = @perm_id_1 + 1;
 
 -- permission_detail_department test data
 INSERT INTO permission_detail_department (
@@ -35,7 +81,5 @@ INSERT INTO permission_detail_department (
     updated_at
 )
 VALUES
--- Specific department permissions for 開発1課長
-(205, 'DEPT007', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(205, 'DEPT008', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(206, 'DEPT007', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP); 
+(@perm_id_2, 'DEPT001', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(@perm_id_2, 'DEPT002', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP); 

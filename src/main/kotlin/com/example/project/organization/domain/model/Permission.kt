@@ -4,7 +4,7 @@ import com.example.project.organization.domain.model.vo.DepartmentScope
 import java.time.LocalDateTime
 
 data class Permission(
-    val permissionDetailId: Long,
+    val permissionDetailId: Long?,
     val permissionId: String,
     val userId: String,
     val permissionType: String,

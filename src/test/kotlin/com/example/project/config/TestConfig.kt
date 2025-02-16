@@ -162,13 +162,25 @@ class TestConfig {
 
     @Bean
     @Primary
-    fun transactionManager(@Qualifier("organizationDataSource") dataSource: DataSource): PlatformTransactionManager {
+    @Qualifier("organizationTransactionManager")
+    fun organizationTransactionManager(@Qualifier("organizationDataSource") dataSource: DataSource): PlatformTransactionManager {
         return DataSourceTransactionManager(dataSource).apply {
             isRollbackOnCommitFailure = true
             defaultTimeout = 30
             isValidateExistingTransaction = true
             isGlobalRollbackOnParticipationFailure = true
             isNestedTransactionAllowed = true
+        }
+    }
+
+    @Bean
+    @Qualifier("organizationTransactionTemplate")
+    fun organizationTransactionTemplate(
+        @Qualifier("organizationTransactionManager") transactionManager: PlatformTransactionManager
+    ): TransactionTemplate {
+        return TransactionTemplate(transactionManager).apply {
+            timeout = 30
+            isReadOnly = false
         }
     }
 
@@ -293,7 +305,7 @@ class TestConfig {
             .dataSource(codeMasterTestDataSource())
             .locations(
                 "classpath:db/migration/code_master_db",
-                "classpath:db/testdata/code_master_db"
+                "classpath:db/testmigration/code_master_db"
             )
             .baselineOnMigrate(true)
             .outOfOrder(true)
@@ -304,7 +316,10 @@ class TestConfig {
         // Organization DB
         Flyway.configure()
             .dataSource(organizationTestDataSource())
-            .locations("classpath:db/migration/organization_db")
+            .locations(
+                "classpath:db/migration/organization_db",
+                "classpath:db/testmigration/organization_db"
+            )
             .baselineOnMigrate(true)
             .outOfOrder(true)
             .validateOnMigrate(false)
@@ -314,7 +329,10 @@ class TestConfig {
         // Document DB
         Flyway.configure()
             .dataSource(documentTestDataSource())
-            .locations("classpath:db/migration/document_db")
+            .locations(
+                "classpath:db/migration/document_db",
+                "classpath:db/testmigration/document_db"
+            )
             .baselineOnMigrate(true)
             .outOfOrder(true)
             .validateOnMigrate(false)
@@ -324,7 +342,10 @@ class TestConfig {
         // Framework DB
         Flyway.configure()
             .dataSource(frameworkTestDataSource())
-            .locations("classpath:db/migration/framework_db")
+            .locations(
+                "classpath:db/migration/framework_db",
+                "classpath:db/testmigration/framework_db"
+            )
             .baselineOnMigrate(true)
             .outOfOrder(true)
             .validateOnMigrate(false)
@@ -334,7 +355,10 @@ class TestConfig {
         // Audit DB
         Flyway.configure()
             .dataSource(auditTestDataSource())
-            .locations("classpath:db/migration/audit_db")
+            .locations(
+                "classpath:db/migration/audit_db",
+                "classpath:db/testmigration/audit_db"
+            )
             .baselineOnMigrate(true)
             .outOfOrder(true)
             .validateOnMigrate(false)
@@ -344,7 +368,10 @@ class TestConfig {
         // Training DB
         Flyway.configure()
             .dataSource(trainingTestDataSource())
-            .locations("classpath:db/migration/training_db")
+            .locations(
+                "classpath:db/migration/training_db",
+                "classpath:db/testmigration/training_db"
+            )
             .baselineOnMigrate(true)
             .outOfOrder(true)
             .validateOnMigrate(false)
