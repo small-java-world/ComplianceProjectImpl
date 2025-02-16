@@ -293,8 +293,7 @@ class TestConfig {
             .dataSource(codeMasterTestDataSource())
             .locations(
                 "classpath:db/migration/code_master_db",
-                "classpath:db/migration/code_master_db_test",
-                "classpath:db/testmigration/code_master_db_test"
+                "classpath:db/testdata/code_master_db"
             )
             .baselineOnMigrate(true)
             .outOfOrder(true)
