@@ -164,9 +164,10 @@ class TestConfig {
     fun transactionManager(@Qualifier("organizationDataSource") dataSource: DataSource): PlatformTransactionManager {
         val transactionManager = DataSourceTransactionManager(dataSource)
         transactionManager.isRollbackOnCommitFailure = true
-        transactionManager.defaultTimeout = 60
+        transactionManager.defaultTimeout = 120
         transactionManager.isValidateExistingTransaction = true
         transactionManager.isGlobalRollbackOnParticipationFailure = true
+        transactionManager.isNestedTransactionAllowed = true
         return transactionManager
     }
 
@@ -174,35 +175,62 @@ class TestConfig {
     @Qualifier("codeMasterTransactionManager")
     fun codeMasterTransactionManager(@Qualifier("codeMasterDataSource") dataSource: DataSource): PlatformTransactionManager {
         val transactionManager = DataSourceTransactionManager(dataSource)
-        transactionManager.isRollbackOnCommitFailure = true
-        transactionManager.defaultTimeout = 60
-        transactionManager.isValidateExistingTransaction = true
-        transactionManager.isGlobalRollbackOnParticipationFailure = true
+        transactionManager.apply {
+            isRollbackOnCommitFailure = true
+            defaultTimeout = 180
+            isValidateExistingTransaction = true
+            isGlobalRollbackOnParticipationFailure = true
+            isNestedTransactionAllowed = true
+        }
         return transactionManager
     }
 
     @Bean
     @Qualifier("documentTransactionManager")
     fun documentTransactionManager(@Qualifier("documentDataSource") dataSource: DataSource): PlatformTransactionManager {
-        return DataSourceTransactionManager(dataSource)
+        val transactionManager = DataSourceTransactionManager(dataSource)
+        transactionManager.isRollbackOnCommitFailure = true
+        transactionManager.defaultTimeout = 120
+        transactionManager.isValidateExistingTransaction = true
+        transactionManager.isGlobalRollbackOnParticipationFailure = true
+        transactionManager.isNestedTransactionAllowed = true
+        return transactionManager
     }
 
     @Bean
     @Qualifier("frameworkTransactionManager")
     fun frameworkTransactionManager(@Qualifier("frameworkDataSource") dataSource: DataSource): PlatformTransactionManager {
-        return DataSourceTransactionManager(dataSource)
+        val transactionManager = DataSourceTransactionManager(dataSource)
+        transactionManager.isRollbackOnCommitFailure = true
+        transactionManager.defaultTimeout = 120
+        transactionManager.isValidateExistingTransaction = true
+        transactionManager.isGlobalRollbackOnParticipationFailure = true
+        transactionManager.isNestedTransactionAllowed = true
+        return transactionManager
     }
 
     @Bean
     @Qualifier("auditTransactionManager")
     fun auditTransactionManager(@Qualifier("auditDataSource") dataSource: DataSource): PlatformTransactionManager {
-        return DataSourceTransactionManager(dataSource)
+        val transactionManager = DataSourceTransactionManager(dataSource)
+        transactionManager.isRollbackOnCommitFailure = true
+        transactionManager.defaultTimeout = 120
+        transactionManager.isValidateExistingTransaction = true
+        transactionManager.isGlobalRollbackOnParticipationFailure = true
+        transactionManager.isNestedTransactionAllowed = true
+        return transactionManager
     }
 
     @Bean
     @Qualifier("trainingTransactionManager")
     fun trainingTransactionManager(@Qualifier("trainingDataSource") dataSource: DataSource): PlatformTransactionManager {
-        return DataSourceTransactionManager(dataSource)
+        val transactionManager = DataSourceTransactionManager(dataSource)
+        transactionManager.isRollbackOnCommitFailure = true
+        transactionManager.defaultTimeout = 120
+        transactionManager.isValidateExistingTransaction = true
+        transactionManager.isGlobalRollbackOnParticipationFailure = true
+        transactionManager.isNestedTransactionAllowed = true
+        return transactionManager
     }
 
     private fun createHikariDataSource(
@@ -213,26 +241,26 @@ class TestConfig {
     ): HikariDataSource {
         return HikariDataSource().apply {
             jdbcUrl = if (url.contains("?")) {
-                "$url&serverTimezone=Asia/Tokyo&rewriteBatchedStatements=true&useLocalTransactionState=true&socketTimeout=60000&allowPublicKeyRetrieval=true&useSSL=false"
+                "$url&serverTimezone=Asia/Tokyo&rewriteBatchedStatements=true&useLocalTransactionState=true&socketTimeout=180000&allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10"
             } else {
-                "$url?serverTimezone=Asia/Tokyo&rewriteBatchedStatements=true&useLocalTransactionState=true&socketTimeout=60000&allowPublicKeyRetrieval=true&useSSL=false"
+                "$url?serverTimezone=Asia/Tokyo&rewriteBatchedStatements=true&useLocalTransactionState=true&socketTimeout=180000&allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10"
             }
             this.username = username
             this.password = password
             driverClassName = "com.mysql.cj.jdbc.Driver"
-            maximumPoolSize = 10
-            minimumIdle = 5
+            maximumPoolSize = 3
+            minimumIdle = 1
             idleTimeout = 300000
-            connectionTimeout = 60000
+            connectionTimeout = 180000
             maxLifetime = 1800000
             this.poolName = poolName
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_READ_COMMITTED"
-            leakDetectionThreshold = 60000
+            leakDetectionThreshold = 180000
             validationTimeout = 5000
             initializationFailTimeout = -1
             isIsolateInternalQueries = true
-            isRegisterMbeans = true
+            isRegisterMbeans = false
             keepaliveTime = 300000
             connectionTestQuery = "SELECT 1"
         }
