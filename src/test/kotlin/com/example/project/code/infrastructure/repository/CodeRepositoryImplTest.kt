@@ -161,7 +161,12 @@ class CodeRepositoryImplTest {
             logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
         } catch (e: Exception) {
             logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
-            transactionManager.rollback(setupTxStatus)
+            try {
+                transactionManager.rollback(setupTxStatus)
+                logger.info("Setup transaction rolled back")
+            } catch (rollbackEx: Exception) {
+                logger.error("Error during rollback: ${rollbackEx.message}", rollbackEx)
+            }
             throw e
         }
 
@@ -208,7 +213,12 @@ class CodeRepositoryImplTest {
             logger.info("Test execution transaction committed with ID: ${testTxStatus.hashCode()}")
         } catch (e: Exception) {
             logger.error("Error during test with transaction ID ${testTxStatus.hashCode()}: ${e.message}", e)
-            transactionManager.rollback(testTxStatus)
+            try {
+                transactionManager.rollback(testTxStatus)
+                logger.info("Test transaction rolled back")
+            } catch (rollbackEx: Exception) {
+                logger.error("Error during rollback: ${rollbackEx.message}", rollbackEx)
+            }
             throw e
         }
     }
@@ -240,7 +250,12 @@ class CodeRepositoryImplTest {
             logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
         } catch (e: Exception) {
             logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
-            transactionManager.rollback(setupTxStatus)
+            try {
+                transactionManager.rollback(setupTxStatus)
+                logger.info("Setup transaction rolled back")
+            } catch (rollbackEx: Exception) {
+                logger.error("Error during rollback: ${rollbackEx.message}", rollbackEx)
+            }
             throw e
         }
 
@@ -284,7 +299,12 @@ class CodeRepositoryImplTest {
             logger.info("Test execution transaction committed with ID: ${testTxStatus.hashCode()}")
         } catch (e: Exception) {
             logger.error("Error during test with transaction ID ${testTxStatus.hashCode()}: ${e.message}", e)
-            transactionManager.rollback(testTxStatus)
+            try {
+                transactionManager.rollback(testTxStatus)
+                logger.info("Test transaction rolled back")
+            } catch (rollbackEx: Exception) {
+                logger.error("Error during rollback: ${rollbackEx.message}", rollbackEx)
+            }
             throw e
         }
     }
@@ -333,7 +353,12 @@ class CodeRepositoryImplTest {
             logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
         } catch (e: Exception) {
             logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
-            transactionManager.rollback(setupTxStatus)
+            try {
+                transactionManager.rollback(setupTxStatus)
+                logger.info("Setup transaction rolled back")
+            } catch (rollbackEx: Exception) {
+                logger.error("Error during rollback: ${rollbackEx.message}", rollbackEx)
+            }
             throw e
         }
 
@@ -379,7 +404,12 @@ class CodeRepositoryImplTest {
             logger.info("Test execution transaction committed with ID: ${testTxStatus.hashCode()}")
         } catch (e: Exception) {
             logger.error("Error during test with transaction ID ${testTxStatus.hashCode()}: ${e.message}", e)
-            transactionManager.rollback(testTxStatus)
+            try {
+                transactionManager.rollback(testTxStatus)
+                logger.info("Test transaction rolled back")
+            } catch (rollbackEx: Exception) {
+                logger.error("Error during rollback: ${rollbackEx.message}", rollbackEx)
+            }
             throw e
         }
     }
