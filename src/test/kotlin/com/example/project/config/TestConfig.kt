@@ -21,10 +21,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 import javax.sql.DataSource
 import jakarta.annotation.PostConstruct
 import org.flywaydb.core.Flyway
+import org.springframework.transaction.support.TransactionTemplate
 
 @Configuration
 @Profile("test")
-@EnableTransactionManagement
+@EnableTransactionManagement(proxyTargetClass = true)
 class TestConfig {
 
     @Bean
@@ -32,7 +33,7 @@ class TestConfig {
     @Qualifier("organizationDataSource")
     fun organizationTestDataSource(): DataSource {
         return createHikariDataSource(
-            url = "jdbc:mysql://localhost:3307/organization_db_test",
+            url = "jdbc:mysql://localhost:3307/organization_db_test?characterEncoding=UTF-8&useUnicode=yes&characterSetResults=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&socketTimeout=10000&connectTimeout=10000&autoReconnect=false",
             username = "root",
             password = "root",
             poolName = "HikariPool-organization-test"
@@ -43,7 +44,7 @@ class TestConfig {
     @Qualifier("codeMasterDataSource")
     fun codeMasterTestDataSource(): DataSource {
         return createHikariDataSource(
-            url = "jdbc:mysql://localhost:3307/code_master_db_test",
+            url = "jdbc:mysql://localhost:3307/code_master_db_test?characterEncoding=UTF-8&useUnicode=yes&characterSetResults=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&socketTimeout=10000&connectTimeout=10000&autoReconnect=false",
             username = "root",
             password = "root",
             poolName = "HikariPool-code-master-test"
@@ -54,7 +55,7 @@ class TestConfig {
     @Qualifier("documentDataSource")
     fun documentTestDataSource(): DataSource {
         return createHikariDataSource(
-            url = "jdbc:mysql://localhost:3307/document_db_test",
+            url = "jdbc:mysql://localhost:3307/document_db_test?characterEncoding=UTF-8&useUnicode=yes&characterSetResults=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&socketTimeout=10000&connectTimeout=10000&autoReconnect=false",
             username = "root",
             password = "root",
             poolName = "HikariPool-document-test"
@@ -65,7 +66,7 @@ class TestConfig {
     @Qualifier("frameworkDataSource")
     fun frameworkTestDataSource(): DataSource {
         return createHikariDataSource(
-            url = "jdbc:mysql://localhost:3307/framework_db_test",
+            url = "jdbc:mysql://localhost:3307/framework_db_test?characterEncoding=UTF-8&useUnicode=yes&characterSetResults=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&socketTimeout=10000&connectTimeout=10000&autoReconnect=false",
             username = "root",
             password = "root",
             poolName = "HikariPool-framework-test"
@@ -76,7 +77,7 @@ class TestConfig {
     @Qualifier("auditDataSource")
     fun auditTestDataSource(): DataSource {
         return createHikariDataSource(
-            url = "jdbc:mysql://localhost:3307/audit_db_test",
+            url = "jdbc:mysql://localhost:3307/audit_db_test?characterEncoding=UTF-8&useUnicode=yes&characterSetResults=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&socketTimeout=10000&connectTimeout=10000&autoReconnect=false",
             username = "root",
             password = "root",
             poolName = "HikariPool-audit-test"
@@ -87,7 +88,7 @@ class TestConfig {
     @Qualifier("trainingDataSource")
     fun trainingTestDataSource(): DataSource {
         return createHikariDataSource(
-            url = "jdbc:mysql://localhost:3307/training_db_test",
+            url = "jdbc:mysql://localhost:3307/training_db_test?characterEncoding=UTF-8&useUnicode=yes&characterSetResults=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&socketTimeout=10000&connectTimeout=10000&autoReconnect=false",
             username = "root",
             password = "root",
             poolName = "HikariPool-training-test"
@@ -162,75 +163,84 @@ class TestConfig {
     @Bean
     @Primary
     fun transactionManager(@Qualifier("organizationDataSource") dataSource: DataSource): PlatformTransactionManager {
-        val transactionManager = DataSourceTransactionManager(dataSource)
-        transactionManager.isRollbackOnCommitFailure = true
-        transactionManager.defaultTimeout = 120
-        transactionManager.isValidateExistingTransaction = true
-        transactionManager.isGlobalRollbackOnParticipationFailure = true
-        transactionManager.isNestedTransactionAllowed = true
-        return transactionManager
+        return DataSourceTransactionManager(dataSource).apply {
+            isRollbackOnCommitFailure = true
+            defaultTimeout = 30
+            isValidateExistingTransaction = true
+            isGlobalRollbackOnParticipationFailure = true
+            isNestedTransactionAllowed = true
+        }
     }
 
     @Bean
     @Qualifier("codeMasterTransactionManager")
     fun codeMasterTransactionManager(@Qualifier("codeMasterDataSource") dataSource: DataSource): PlatformTransactionManager {
-        val transactionManager = DataSourceTransactionManager(dataSource)
-        transactionManager.apply {
+        return DataSourceTransactionManager(dataSource).apply {
             isRollbackOnCommitFailure = true
-            defaultTimeout = 180
+            defaultTimeout = 30
             isValidateExistingTransaction = true
             isGlobalRollbackOnParticipationFailure = true
             isNestedTransactionAllowed = true
         }
-        return transactionManager
+    }
+
+    @Bean
+    @Qualifier("codeMasterTransactionTemplate")
+    fun codeMasterTransactionTemplate(
+        @Qualifier("codeMasterTransactionManager") transactionManager: PlatformTransactionManager
+    ): TransactionTemplate {
+        return TransactionTemplate(transactionManager).apply {
+            timeout = 30
+            isReadOnly = false
+        }
     }
 
     @Bean
     @Qualifier("documentTransactionManager")
     fun documentTransactionManager(@Qualifier("documentDataSource") dataSource: DataSource): PlatformTransactionManager {
-        val transactionManager = DataSourceTransactionManager(dataSource)
-        transactionManager.isRollbackOnCommitFailure = true
-        transactionManager.defaultTimeout = 120
-        transactionManager.isValidateExistingTransaction = true
-        transactionManager.isGlobalRollbackOnParticipationFailure = true
-        transactionManager.isNestedTransactionAllowed = true
-        return transactionManager
+        return DataSourceTransactionManager(dataSource).apply {
+            isRollbackOnCommitFailure = true
+            defaultTimeout = 10
+            isValidateExistingTransaction = true
+            isGlobalRollbackOnParticipationFailure = true
+            isNestedTransactionAllowed = true
+        }
     }
 
     @Bean
     @Qualifier("frameworkTransactionManager")
     fun frameworkTransactionManager(@Qualifier("frameworkDataSource") dataSource: DataSource): PlatformTransactionManager {
-        val transactionManager = DataSourceTransactionManager(dataSource)
-        transactionManager.isRollbackOnCommitFailure = true
-        transactionManager.defaultTimeout = 120
-        transactionManager.isValidateExistingTransaction = true
-        transactionManager.isGlobalRollbackOnParticipationFailure = true
-        transactionManager.isNestedTransactionAllowed = true
-        return transactionManager
+        return DataSourceTransactionManager(dataSource).apply {
+            isRollbackOnCommitFailure = true
+            defaultTimeout = 10
+            isValidateExistingTransaction = true
+            isGlobalRollbackOnParticipationFailure = true
+            isNestedTransactionAllowed = true
+        }
     }
 
     @Bean
     @Qualifier("auditTransactionManager")
     fun auditTransactionManager(@Qualifier("auditDataSource") dataSource: DataSource): PlatformTransactionManager {
-        val transactionManager = DataSourceTransactionManager(dataSource)
-        transactionManager.isRollbackOnCommitFailure = true
-        transactionManager.defaultTimeout = 120
-        transactionManager.isValidateExistingTransaction = true
-        transactionManager.isGlobalRollbackOnParticipationFailure = true
-        transactionManager.isNestedTransactionAllowed = true
-        return transactionManager
+        return DataSourceTransactionManager(dataSource).apply {
+            isRollbackOnCommitFailure = true
+            defaultTimeout = 10
+            isValidateExistingTransaction = true
+            isGlobalRollbackOnParticipationFailure = true
+            isNestedTransactionAllowed = true
+        }
     }
 
     @Bean
     @Qualifier("trainingTransactionManager")
     fun trainingTransactionManager(@Qualifier("trainingDataSource") dataSource: DataSource): PlatformTransactionManager {
-        val transactionManager = DataSourceTransactionManager(dataSource)
-        transactionManager.isRollbackOnCommitFailure = true
-        transactionManager.defaultTimeout = 120
-        transactionManager.isValidateExistingTransaction = true
-        transactionManager.isGlobalRollbackOnParticipationFailure = true
-        transactionManager.isNestedTransactionAllowed = true
-        return transactionManager
+        return DataSourceTransactionManager(dataSource).apply {
+            isRollbackOnCommitFailure = true
+            defaultTimeout = 10
+            isValidateExistingTransaction = true
+            isGlobalRollbackOnParticipationFailure = true
+            isNestedTransactionAllowed = true
+        }
     }
 
     private fun createHikariDataSource(
@@ -240,28 +250,24 @@ class TestConfig {
         poolName: String
     ): HikariDataSource {
         return HikariDataSource().apply {
-            jdbcUrl = if (url.contains("?")) {
-                "$url&serverTimezone=Asia/Tokyo&rewriteBatchedStatements=true&useLocalTransactionState=true&socketTimeout=180000&allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10"
-            } else {
-                "$url?serverTimezone=Asia/Tokyo&rewriteBatchedStatements=true&useLocalTransactionState=true&socketTimeout=180000&allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true&failOverReadOnly=false&maxReconnects=10"
-            }
+            jdbcUrl = url
             this.username = username
             this.password = password
             driverClassName = "com.mysql.cj.jdbc.Driver"
-            maximumPoolSize = 3
-            minimumIdle = 1
-            idleTimeout = 300000
-            connectionTimeout = 180000
-            maxLifetime = 1800000
+            maximumPoolSize = 5
+            minimumIdle = 2
+            idleTimeout = 30000
+            connectionTimeout = 20000
+            maxLifetime = 60000
             this.poolName = poolName
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_READ_COMMITTED"
-            leakDetectionThreshold = 180000
+            leakDetectionThreshold = 30000
             validationTimeout = 5000
             initializationFailTimeout = -1
             isIsolateInternalQueries = true
             isRegisterMbeans = false
-            keepaliveTime = 300000
+            keepaliveTime = 30000
             connectionTestQuery = "SELECT 1"
         }
     }
@@ -270,55 +276,80 @@ class TestConfig {
         val config = DefaultConfiguration()
             .set(dataSource)
             .set(SQLDialect.MYSQL)
-            .set(org.jooq.conf.Settings().withRenderSchema(false))
+            .set(org.jooq.conf.Settings()
+                .withRenderSchema(false)
+                .withExecuteLogging(true)
+                .withExecuteWithOptimisticLocking(true)
+                .withExecuteWithOptimisticLockingExcludeUnversioned(false)
+            )
 
         return DSL.using(config)
     }
 
     @PostConstruct
-    fun initDatabase() {
-        val databases = listOf(
-            "organization_db_test",
-            "code_master_db_test",
-            "document_db_test",
-            "framework_db_test",
-            "audit_db_test",
-            "training_db_test"
-        )
+    fun migrateTestDatabases() {
+        // Code Master DB
+        Flyway.configure()
+            .dataSource(codeMasterTestDataSource())
+            .locations(
+                "classpath:db/migration/code_master_db",
+                "classpath:db/migration/code_master_db_test",
+                "classpath:db/testmigration/code_master_db_test"
+            )
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+            .migrate()
 
-        val jdbcUrl = "jdbc:mysql://localhost:3307?serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true&useSSL=false"
-        val dataSource = HikariDataSource().apply {
-            this.jdbcUrl = jdbcUrl
-            username = "root"
-            password = "root"
-            driverClassName = "com.mysql.cj.jdbc.Driver"
-        }
+        // Organization DB
+        Flyway.configure()
+            .dataSource(organizationTestDataSource())
+            .locations("classpath:db/migration/organization_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+            .migrate()
 
-        val jdbcTemplate = JdbcTemplate(dataSource)
-        databases.forEach { database ->
-            jdbcTemplate.execute("DROP DATABASE IF EXISTS $database")
-            jdbcTemplate.execute("CREATE DATABASE $database")
-        }
-        dataSource.close()
+        // Document DB
+        Flyway.configure()
+            .dataSource(documentTestDataSource())
+            .locations("classpath:db/migration/document_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+            .migrate()
 
-        databases.forEach { database ->
-            val migrationDataSource = HikariDataSource().apply {
-                this.jdbcUrl = "jdbc:mysql://localhost:3307/$database?serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true&useSSL=false"
-                username = "root"
-                password = "root"
-                driverClassName = "com.mysql.cj.jdbc.Driver"
-            }
+        // Framework DB
+        Flyway.configure()
+            .dataSource(frameworkTestDataSource())
+            .locations("classpath:db/migration/framework_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+            .migrate()
 
-            val flyway = Flyway.configure()
-                .dataSource(migrationDataSource)
-                .locations(
-                    "classpath:db/migration/${database.removeSuffix("_test")}",
-                    "classpath:db/testmigration/${database.removeSuffix("_test")}"
-                )
-                .load()
+        // Audit DB
+        Flyway.configure()
+            .dataSource(auditTestDataSource())
+            .locations("classpath:db/migration/audit_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+            .migrate()
 
-            flyway.migrate()
-            migrationDataSource.close()
-        }
+        // Training DB
+        Flyway.configure()
+            .dataSource(trainingTestDataSource())
+            .locations("classpath:db/migration/training_db")
+            .baselineOnMigrate(true)
+            .outOfOrder(true)
+            .validateOnMigrate(false)
+            .load()
+            .migrate()
     }
 } 

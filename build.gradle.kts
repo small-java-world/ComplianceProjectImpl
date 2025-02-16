@@ -189,7 +189,11 @@ tasks {
                     dbConfig.values.forEach { dbName ->
                         println("Creating database: $dbName")
                         statement.execute("DROP DATABASE IF EXISTS $dbName")
-                        statement.execute("CREATE DATABASE $dbName CHARACTER SET ${project.property("dbCharset")} COLLATE ${project.property("dbCollation")}")
+                        statement.execute("""
+                            CREATE DATABASE $dbName
+                            CHARACTER SET utf8mb4
+                            COLLATE utf8mb4_unicode_ci
+                        """.trimIndent())
                     }
                 }
             } catch (e: Exception) {
@@ -223,8 +227,12 @@ tasks {
                     baselineVersion = "0"
                     locations = arrayOf(
                         "filesystem:src/main/resources/db/migration/${key}",
-                        "filesystem:src/test/resources/db/testmigration/${key}"
+                        "filesystem:src/main/resources/db/migration/${key}_test",
+                        "filesystem:src/test/resources/db/testmigration/${key}",
+                        "filesystem:src/test/resources/db/testmigration/${key}_test"
                     )
+                    encoding = "UTF-8"
+                    validateMigrationNaming = true
                 }
                 project.tasks.getByName("flywayMigrate").actions.forEach { action ->
                     action.execute(project.tasks.getByName("flywayMigrate"))

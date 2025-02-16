@@ -22,14 +22,14 @@ CREATE TABLE IF NOT EXISTS M_CODE (
     extension15        VARCHAR(100) NULL,
     display_order      INT          NOT NULL DEFAULT 0,
     is_active         BOOLEAN      NOT NULL DEFAULT true,
-    description       TEXT,
+    description       TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT PK_M_CODE PRIMARY KEY (code_category, code)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create indexes
 CREATE INDEX idx_m_code_code_category ON M_CODE(code_category);
 CREATE INDEX idx_m_code_code ON M_CODE(code);
-CREATE INDEX idx_m_code_code_division ON M_CODE(code_division);
+CREATE INDEX idx_m_code_code_division ON M_CODE(code_division); 
