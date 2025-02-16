@@ -95,6 +95,13 @@ class CodeRepositoryImplTest {
 
             transactionManager.commit(cleanupTxStatus)
             logger.info("Cleanup transaction committed successfully")
+
+            // コミット後の最終確認
+            val finalRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Final record count after commit: ${finalRecords.size}")
+            if (finalRecords.isNotEmpty()) {
+                throw IllegalStateException("Cleanup verification failed: ${finalRecords.size} records found after commit")
+            }
         } catch (e: Exception) {
             logger.error("Error during cleanup: ${e.message}", e)
             try {
@@ -110,8 +117,20 @@ class CodeRepositoryImplTest {
     @BeforeEach
     fun setUp() {
         try {
+            // データベースの状態を確認
+            val initialRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Initial state before setup: ${initialRecords.size} records")
+
+            // クリーンアップを実行
             cleanupDatabase()
             logger.info("Database setup completed successfully")
+
+            // セットアップ後の最終確認
+            val setupRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Record count after setup: ${setupRecords.size}")
+            if (setupRecords.isNotEmpty()) {
+                throw IllegalStateException("Setup verification failed: ${setupRecords.size} records found after setup")
+            }
         } catch (e: Exception) {
             logger.error("Error during setup: ${e.message}", e)
             throw e
@@ -125,6 +144,10 @@ class CodeRepositoryImplTest {
         val now = LocalDateTime.now()
         
         try {
+            // データ挿入前の状態を確認
+            val beforeInsertRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Records before insertion: ${beforeInsertRecords.size}")
+
             logger.info("Inserting test data...")
             // 1つ目のテストデータ
             val result1 = dsl.insertInto(M_CODE)
@@ -159,6 +182,13 @@ class CodeRepositoryImplTest {
             verifyDataInsertion(2)
             transactionManager.commit(setupTxStatus)
             logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
+
+            // コミット後の確認
+            val setupRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Record count after setup commit: ${setupRecords.size}")
+            if (setupRecords.size != 2) {
+                throw IllegalStateException("Setup verification failed: Expected 2 records, but found ${setupRecords.size}")
+            }
         } catch (e: Exception) {
             logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
             try {
@@ -230,6 +260,10 @@ class CodeRepositoryImplTest {
         val now = LocalDateTime.now()
         
         try {
+            // データ挿入前の状態を確認
+            val beforeInsertRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Records before insertion: ${beforeInsertRecords.size}")
+
             logger.info("Inserting test data...")
             val result = dsl.insertInto(M_CODE)
                 .set(M_CODE.CODE_CATEGORY, "TEST_CATEGORY")
@@ -248,6 +282,13 @@ class CodeRepositoryImplTest {
             verifyDataInsertion(1)
             transactionManager.commit(setupTxStatus)
             logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
+
+            // コミット後の確認
+            val setupRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Record count after setup commit: ${setupRecords.size}")
+            if (setupRecords.size != 1) {
+                throw IllegalStateException("Setup verification failed: Expected 1 record, but found ${setupRecords.size}")
+            }
         } catch (e: Exception) {
             logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
             try {
@@ -317,6 +358,10 @@ class CodeRepositoryImplTest {
         val laterTime = now.plusHours(1)
         
         try {
+            // データ挿入前の状態を確認
+            val beforeInsertRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Records before insertion: ${beforeInsertRecords.size}")
+
             logger.info("Inserting test data...")
             // 1つ目のテストデータ（古い更新日時）
             val result1 = dsl.insertInto(M_CODE)
@@ -351,6 +396,13 @@ class CodeRepositoryImplTest {
             verifyDataInsertion(2)
             transactionManager.commit(setupTxStatus)
             logger.info("Data setup transaction committed with ID: ${setupTxStatus.hashCode()}")
+
+            // コミット後の確認
+            val setupRecords = dsl.selectFrom(M_CODE).fetch()
+            logger.info("Record count after setup commit: ${setupRecords.size}")
+            if (setupRecords.size != 2) {
+                throw IllegalStateException("Setup verification failed: Expected 2 records, but found ${setupRecords.size}")
+            }
         } catch (e: Exception) {
             logger.error("Error during setup with transaction ID ${setupTxStatus.hashCode()}: ${e.message}", e)
             try {
